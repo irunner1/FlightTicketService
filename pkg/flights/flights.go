@@ -32,30 +32,49 @@ type SearchParams struct {
 
 // flightServiceImpl structure implements interface FlightService.
 type flightServiceImpl struct {
+	flights []Flight
 }
 
-// NewFlightService creates new instance of FlightService.
+// NewFlightService creates new instance of FlightService with predefined flights.
 func NewFlightService() FlightService {
-	return &flightServiceImpl{}
+	sampleFlights := []Flight{
+		{
+			ID:          "FL001",
+			Airline:     "Global Airlines",
+			Origin:      "New York",
+			Destination: "London",
+			Departure:   time.Date(2023, time.April, 15, 8, 0, 0, 0, time.UTC),
+			Arrival:     time.Date(2023, time.April, 15, 20, 0, 0, 0, time.UTC),
+			Price:       450.00,
+		},
+		{
+			ID:          "FL002",
+			Airline:     "Sky Travelers",
+			Origin:      "San Francisco",
+			Destination: "Tokyo",
+			Departure:   time.Date(2023, time.April, 20, 11, 0, 0, 0, time.UTC),
+			Arrival:     time.Date(2023, time.April, 21, 5, 0, 0, 0, time.UTC),
+			Price:       800.00,
+		},
+	}
+
+	return &flightServiceImpl{
+		flights: sampleFlights,
+	}
 }
 
 // GetFlights returns list of flights.
 func (s *flightServiceImpl) GetFlights(params SearchParams) ([]Flight, error) {
-	return []Flight{}, nil
+	// TODO: Implement filtering based on SearchParams
+	return s.flights, nil
 }
 
 // GetFlightByID gets info about flight by id.
 func (s *flightServiceImpl) GetFlightByID(flightID string) (Flight, error) {
-	if flightID == "" {
-		return Flight{}, errors.New("flight ID cannot be empty")
+	for _, flight := range s.flights {
+		if flight.ID == flightID {
+			return flight, nil
+		}
 	}
-	return Flight{
-		ID:          flightID,
-		Airline:     "Example Airline",
-		Origin:      "City A",
-		Destination: "City B",
-		Departure:   time.Now(),
-		Arrival:     time.Now().Add(2 * time.Hour),
-		Price:       199.99,
-	}, nil
+	return Flight{}, errors.New("flight not found")
 }

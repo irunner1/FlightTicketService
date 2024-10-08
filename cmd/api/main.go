@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	"flightticketservice/pkg/flights"
 )
 
 func main() {
@@ -40,12 +43,37 @@ func main() {
 
 // GetFlights handles requests for getting list of flights.
 func GetFlights(w http.ResponseWriter, r *http.Request) {
+	flightSer := flights.NewFlightService()
+	searchParams := flights.SearchParams{
+		Origin:      "Moscow",
+		Destination: "Istanbul",
+		Departure:   time.Date(2024, time.April, 15, 10, 0, 0, 0, time.UTC),
+		Arrival:     time.Date(2024, time.April, 15, 13, 30, 0, 0, time.UTC),
+	}
+	flights, err := flightSer.GetFlights(searchParams)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(flights)
 }
 
 // GetFlightInfo handles requests for getting flight info
 func GetFlightInfo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	flightID := vars["id"]
 
+	flightSer := flights.NewFlightService()
+	flight, err := flightSer.GetFlightByID(flightID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(flight)
 }
 
 // BookTicket handles requests for booking flight
