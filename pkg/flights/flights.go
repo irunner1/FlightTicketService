@@ -18,7 +18,8 @@ type Flight struct {
 
 // FlightService interface for working with flights.
 type FlightService interface {
-	GetFlights(params SearchParams) ([]Flight, error)
+	GetFlights() ([]Flight, error)
+	GetFlightsByParams(params SearchParams) ([]Flight, error)
 	GetFlightByID(flightID string) (Flight, error)
 }
 
@@ -64,9 +65,32 @@ func NewFlightService() FlightService {
 }
 
 // GetFlights returns list of flights.
-func (s *flightServiceImpl) GetFlights(params SearchParams) ([]Flight, error) {
-	// TODO: Implement filtering based on SearchParams
+func (s *flightServiceImpl) GetFlights() ([]Flight, error) {
 	return s.flights, nil
+}
+
+// GetFlights returns list of flights by parameters.
+func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, error) {
+	var matchingFlights = []Flight{}
+	for _, flight := range s.flights {
+		if params.Origin != "" && flight.Origin != params.Origin {
+			continue
+		}
+		if params.Destination != "" && flight.Destination != params.Destination {
+			continue
+		}
+		if !params.Departure.IsZero() && !flight.Departure.Equal(params.Departure) {
+			continue
+		}
+		if !params.Arrival.IsZero() && !flight.Arrival.Equal(params.Arrival) {
+			continue
+		}
+		matchingFlights = append(matchingFlights, flight)
+	}
+	if len(matchingFlights) == 0 {
+		return nil, errors.New("no flights found matching the search criteria")
+	}
+	return matchingFlights, nil
 }
 
 // GetFlightByID gets info about flight by id.

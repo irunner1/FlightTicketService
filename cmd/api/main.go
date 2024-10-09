@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"flightticketservice/pkg/flights"
+	"flightticketservice/pkg/api"
 )
 
 func main() {
@@ -20,13 +19,23 @@ func main() {
 
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
+	log.Printf("loaded env {'host': %s, 'port': %s}", host, port)
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/flights", GetFlights).Methods("GET")
-	r.HandleFunc("/api/flights/{id}", GetFlightInfo).Methods("GET")
-	r.HandleFunc("/api/tickets", BookTicket).Methods("POST")
-	r.HandleFunc("/api/checkin", CheckInOnline).Methods("POST")
+	// r.HandleFunc("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.ServeFile(w, r, "openapi.json")
+	// }).Methods("GET")
+	// r.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("path/to/swaggerui/"))))
+
+	r.HandleFunc("/api/v1/flights", api.GetFlights).Methods("GET")
+	r.HandleFunc("/api/v1/flights_by_params", api.GetFlightsByParams).Methods("GET")
+	r.HandleFunc("/api/v1/flights/{id}", api.GetFlightInfo).Methods("GET")
+
+	r.HandleFunc("/api/v1/book_ticket", api.BookTicket).Methods("POST")
+	r.HandleFunc("/api/v1/checkin", api.CheckInOnline).Methods("POST")
+	r.HandleFunc("/api/v1/change_ticket", api.ChangeTicket).Methods("POST")
+	r.HandleFunc("/api/v1/cancel_ticket", api.CancelTicket).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      r,
@@ -39,49 +48,4 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
-}
-
-// GetFlights handles requests for getting list of flights.
-func GetFlights(w http.ResponseWriter, r *http.Request) {
-	flightSer := flights.NewFlightService()
-	searchParams := flights.SearchParams{
-		Origin:      "Moscow",
-		Destination: "Istanbul",
-		Departure:   time.Date(2024, time.April, 15, 10, 0, 0, 0, time.UTC),
-		Arrival:     time.Date(2024, time.April, 15, 13, 30, 0, 0, time.UTC),
-	}
-	flights, err := flightSer.GetFlights(searchParams)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flights)
-}
-
-// GetFlightInfo handles requests for getting flight info
-func GetFlightInfo(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	flightID := vars["id"]
-
-	flightSer := flights.NewFlightService()
-	flight, err := flightSer.GetFlightByID(flightID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flight)
-}
-
-// BookTicket handles requests for booking flight
-func BookTicket(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// CheckInOnline handles requests for online registration
-func CheckInOnline(w http.ResponseWriter, r *http.Request) {
-
 }

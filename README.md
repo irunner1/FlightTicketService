@@ -11,6 +11,15 @@ For now it`s just an api
 * JWT tocken for authorization (in progress)
 * Postgres for storage (in progress)
 * RabbitMQ as message brocker (in progress)
+* OpenAPI for documenting API
+* Postman for checking API
+
+## TODO
+
+* Methods for adding data
+* Methods for deleting data
+* Authorization
+* Database
 
 ---
 
