@@ -27,15 +27,57 @@ type BookingService interface {
 
 // bookingServiceImpl structure implements interface BookingService.
 type bookingServiceImpl struct {
+	tickets []Ticket
 }
 
 // NewBookingService creates BookingService.
 func NewBookingService() BookingService {
-	return &bookingServiceImpl{}
+	sampleTickets := []Ticket{
+		{
+			ID:             "ticket1",
+			FlightID:       "flight1",
+			PassengerID:    "passenger1",
+			BookingTime:    time.Now().Add(-48 * time.Hour),
+			DepartureTime:  time.Now().Add(24 * time.Hour),
+			ArrivalTime:    time.Now().Add(30 * time.Hour),
+			Status:         "booked",
+			SeatNumber:     "12A",
+			AdditionalInfo: "Vegetarian meal",
+		},
+		{
+			ID:             "ticket2",
+			FlightID:       "flight2",
+			PassengerID:    "passenger2",
+			BookingTime:    time.Now().Add(-24 * time.Hour),
+			DepartureTime:  time.Now().Add(48 * time.Hour),
+			ArrivalTime:    time.Now().Add(54 * time.Hour),
+			Status:         "confirmed",
+			SeatNumber:     "1C",
+			AdditionalInfo: "Window seat",
+		},
+	}
+	return &bookingServiceImpl{tickets: sampleTickets}
 }
 
-// BookTicket реализует бизнес-логику бронирования билета.
+// BookTicket books the ticket.
 func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
+	if ticket == nil {
+		return errors.New("ticket cannot be nil")
+	}
+
+	if ticket.ID == "" {
+		return errors.New("ticket ID cannot be empty")
+	}
+
+	for _, t := range s.tickets {
+		if t.ID == ticket.ID {
+			return errors.New("ticket with this ID already exists")
+		}
+	}
+
+	ticket.Status = "booked"
+	ticket.BookingTime = time.Now()
+	s.tickets = append(s.tickets, *ticket)
 	return nil
 }
 
@@ -44,7 +86,16 @@ func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 	if ticketID == "" {
 		return errors.New("ticket ID cannot be empty")
 	}
-	return nil
+	for i, t := range s.tickets {
+		if t.ID == ticketID {
+			if t.Status == "cancelled" {
+				return errors.New("ticket is already cancelled")
+			}
+			s.tickets[i].Status = "cancelled"
+			return nil
+		}
+	}
+	return errors.New("ticket not found")
 }
 
 // ChangeFlight change flights.
@@ -52,5 +103,15 @@ func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) e
 	if ticketID == "" || newFlightID == "" {
 		return errors.New("ticket ID and new flight ID cannot be empty")
 	}
-	return nil
+	for i, t := range s.tickets {
+		if t.ID == ticketID {
+			if t.Status == "cancelled" {
+				return errors.New("cannot change flight for a cancelled ticket")
+			}
+			s.tickets[i].FlightID = newFlightID
+			s.tickets[i].Status = "confirmed"
+			return nil
+		}
+	}
+	return errors.New("ticket not found")
 }
