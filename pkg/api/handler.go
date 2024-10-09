@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -188,6 +189,6 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 
 // generateTicketID generates unique ID for each ticket.
 func generateTicketID() string {
-	// TODO: add uuid
-	return "UniqueTicketID"
+	id := uuid.New()
+	return id.String()
 }
