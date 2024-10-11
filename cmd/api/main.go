@@ -10,6 +10,9 @@ import (
 
 	"flightticketservice/pkg/api"
 	"flightticketservice/utils"
+
+	httpSwagger "github.com/swaggo/http-swagger"
+	// "flightticketservice/cmd/api/docs"
 )
 
 func main() {
@@ -27,15 +30,19 @@ func main() {
 	// 	http.ServeFile(w, r, "openapi.json")
 	// }).Methods("GET")
 	// r.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("path/to/swaggerui/"))))
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	r.HandleFunc("/api/v1/flights", api.GetFlights).Methods("GET")
-	r.HandleFunc("/api/v1/flights_by_params", api.GetFlightsByParams).Methods("GET")
+	r.HandleFunc("/api/v1/flights/search", api.GetFlightsByParams).Methods("GET")
 	r.HandleFunc("/api/v1/flights/{id}", api.GetFlightInfo).Methods("GET")
 
-	r.HandleFunc("/api/v1/book_ticket", api.BookTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets", api.GetTickets).Methods("GET")
+	r.HandleFunc("/api/v1/tickets/{id}", api.GetTicketInfo).Methods("GET")
+
+	r.HandleFunc("/api/v1/tickets/book", api.BookTicket).Methods("POST")
 	r.HandleFunc("/api/v1/checkin", api.CheckInOnline).Methods("POST")
-	r.HandleFunc("/api/v1/change_ticket", api.ChangeTicket).Methods("POST")
-	r.HandleFunc("/api/v1/cancel_ticket", api.CancelTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{ticketID}/change", api.ChangeTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{ticketID}/cancel", api.CancelTicket).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      r,

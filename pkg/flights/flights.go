@@ -6,6 +6,7 @@ import (
 )
 
 // Flight collects flight data.
+// @Description Flight model for API response.
 type Flight struct {
 	ID          string    `json:"id"`
 	Airline     string    `json:"airline"`
@@ -65,11 +66,30 @@ func NewFlightService() FlightService {
 }
 
 // GetFlights returns list of flights.
+// @Summary Get list of flights
+// @Description get flights
+// @Tags flights
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Flight
+// @Router /flights [get]
 func (s *flightServiceImpl) GetFlights() ([]Flight, error) {
 	return s.flights, nil
 }
 
-// GetFlights returns list of flights by parameters.
+// GetFlightsByParams searches for flights based on specified parameters.
+// @Summary Search flights by parameters
+// @Description Retrieves a list of flights filtered by the provided search parameters.
+// @Tags flights
+// @Accept json
+// @Produce json
+// @Param origin query string false "Origin location of the flight"
+// @Param destination query string false "Destination location of the flight"
+// @Param departure query string false "Departure date and time"
+// @Param arrival query string false "Arrival date and time"
+// @Success 200 {array} Flight
+// @Failure 404 "No flights found matching the search criteria"
+// @Router /flights/search [get]
 func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, error) {
 	var matchingFlights = []Flight{}
 	for _, flight := range s.flights {
@@ -94,6 +114,16 @@ func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, e
 }
 
 // GetFlightByID gets info about flight by id.
+// GetFlightByID retrieves a flight by its unique identifier.
+// @Summary Get flight by ID
+// @Description Retrieves flight details for a specific flight ID.
+// @Tags flights
+// @Accept json
+// @Produce json
+// @Param id path string true "Unique identifier of the flight"
+// @Success 200 {object} Flight
+// @Failure 404 "Flight not found"
+// @Router /flights/{id} [get]
 func (s *flightServiceImpl) GetFlightByID(flightID string) (Flight, error) {
 	for _, flight := range s.flights {
 		if flight.ID == flightID {

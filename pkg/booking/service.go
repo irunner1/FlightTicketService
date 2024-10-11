@@ -20,9 +20,11 @@ type Ticket struct {
 
 // BookingService interface inmplements methods for booking.
 type BookingService interface {
+	GetTickets() ([]Ticket, error)
 	BookTicket(ticket *Ticket) error
 	CancelTicket(ticketID string) error
 	ChangeFlight(ticketID string, newFlightID string) error
+	GetTicketByID(ticketID string) (Ticket, error)
 }
 
 // bookingServiceImpl structure implements interface BookingService.
@@ -59,7 +61,16 @@ func NewBookingService() BookingService {
 	return &bookingServiceImpl{tickets: sampleTickets}
 }
 
-// BookTicket books the ticket.
+// BookTicket creates a new ticket booking.
+// @Summary Book a new ticket
+// @Description Creates a new ticket booking for a flight.
+// @Tags booking
+// @Accept json
+// @Produce json
+// @Param ticket body Ticket true "Ticket data"
+// @Success 200 "Ticket successfully booked"
+// @Failure 400 "Invalid ticket data"
+// @Router /tickets/book [post]
 func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
 	if ticket == nil {
 		return errors.New("ticket cannot be nil")
@@ -81,7 +92,16 @@ func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
 	return nil
 }
 
-// CancelTicket cancel ticket for flight.
+// CancelTicket cancels an existing ticket.
+// @Summary Cancel a ticket
+// @Description Cancels an existing ticket using the ticket ID.
+// @Tags booking
+// @Accept json
+// @Produce json
+// @Param ticketID path string true "The ID of the ticket to cancel"
+// @Success 200 "Ticket successfully cancelled"
+// @Failure 404 "Ticket not found"
+// @Router /tickets/{ticketID}/cancel [put]
 func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 	if ticketID == "" {
 		return errors.New("ticket ID cannot be empty")
@@ -98,7 +118,18 @@ func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 	return errors.New("ticket not found")
 }
 
-// ChangeFlight change flights.
+// ChangeFlight changes the flight for an existing ticket.
+// @Summary Change the flight of a ticket
+// @Description Changes the flight associated with a ticket to a new flight using the ticket ID and new flight ID.
+// @Tags booking
+// @Accept json
+// @Produce json
+// @Param ticketID path string true "The ID of the ticket to update"
+// @Param newFlightID query string true "The new flight ID to associate with the ticket"
+// @Success 200 "Flight successfully changed for the ticket"
+// @Failure 400 "Invalid parameters"
+// @Failure 404 "Ticket not found or cannot change flight for a cancelled ticket"
+// @Router /tickets/{ticketID}/change [put]
 func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) error {
 	if ticketID == "" || newFlightID == "" {
 		return errors.New("ticket ID and new flight ID cannot be empty")
@@ -114,4 +145,35 @@ func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) e
 		}
 	}
 	return errors.New("ticket not found")
+}
+
+// GetFlightByID returns a ticket by its unique identifier.
+// @Summary Get ticket by ID
+// @Description Returns ticket details for a specific ticket ID.
+// @Tags tickets
+// @Accept json
+// @Produce json
+// @Param id path string true "Unique identifier of the ticket"
+// @Success 200 {object} ticket
+// @Failure 404 "ticket not found"
+// @Router /tickets/{id} [get]
+func (s *bookingServiceImpl) GetTicketByID(ticketID string) (Ticket, error) {
+	for _, ticket := range s.tickets {
+		if ticket.ID == ticketID {
+			return ticket, nil
+		}
+	}
+	return Ticket{}, errors.New("flight not found")
+}
+
+// GetTickets returns list of tickets.
+// @Summary Get list of tickets
+// @Description get tickets
+// @Tags tickets
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Ticket
+// @Router /tickets [get]
+func (s *bookingServiceImpl) GetTickets() ([]Ticket, error) {
+	return s.tickets, nil
 }

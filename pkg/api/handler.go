@@ -168,11 +168,12 @@ func CheckInOnline(w http.ResponseWriter, r *http.Request) {
 func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("ChangeTicket called")
 
+	vars := mux.Vars(r)
+	ticketID := vars["ticketID"]
+	flightID := r.URL.Query().Get("flightID")
+
 	queryParams := r.URL.Query()
 	utils.InfoLog.Println(queryParams)
-
-	ticketID := queryParams.Get("ticketID")
-	flightID := queryParams.Get("flightID")
 
 	if ticketID == "" {
 		utils.ErrorLog.Printf("Missing required parameters in ChangeTicket query")
@@ -191,25 +192,24 @@ func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Ticket booked")
+	json.NewEncoder(w).Encode("Flight id changed")
 }
 
 // CancelTicket handles requests for online registration.
 func CancelTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CancelTicket called")
 
-	queryParams := r.URL.Query()
-	utils.InfoLog.Println(queryParams)
-	flightID := queryParams.Get("flightID")
+	vars := mux.Vars(r)
+	ticketID := vars["ticketID"]
 
-	if flightID == "" {
-		utils.ErrorLog.Printf("Flight id is empty")
+	if ticketID == "" {
+		utils.ErrorLog.Printf("ticket id is empty")
 		http.Error(w, "Missing required parameters", http.StatusBadRequest)
 		return
 	}
 
 	bookingSer := booking.NewBookingService()
-	err := bookingSer.CancelTicket(flightID)
+	err := bookingSer.CancelTicket(ticketID)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in CancelTicket: %v", err)
@@ -226,4 +226,42 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 func generateTicketID() string {
 	id := uuid.New()
 	return id.String()
+}
+
+// GetTickets handles requests for getting list of tickets.
+func GetTickets(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("GetTickets called")
+
+	ticketSer := booking.NewBookingService()
+	tickets, err := ticketSer.GetTickets()
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error receiving flights: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tickets)
+}
+
+// GetTicketInfo handles requests for getting ticket info.
+func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("GetTicketInfo called")
+
+	vars := mux.Vars(r)
+	ticketID := vars["id"]
+
+	ticketSer := booking.NewBookingService()
+	tickets, err := ticketSer.GetTicketByID(ticketID)
+	if err != nil {
+		utils.ErrorLog.Printf("Error receiving tickets: %v", err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tickets)
 }
