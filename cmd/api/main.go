@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -10,16 +9,17 @@ import (
 	"github.com/joho/godotenv"
 
 	"flightticketservice/pkg/api"
+	"flightticketservice/utils"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		utils.InfoLog.Print("No .env file found")
 	}
 
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
-	log.Printf("loaded env {'host': %s, 'port': %s}", host, port)
+	utils.InfoLog.Printf("loaded env {'host': %s, 'port': %s}", host, port)
 
 	r := mux.NewRouter()
 
@@ -44,8 +44,8 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Println("Starting server on", srv.Addr)
+	utils.InfoLog.Println("Starting server on", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal("Server failed to start:", err)
+		utils.ErrorLog.Fatal("Server failed to start:", err)
 	}
 }

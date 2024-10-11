@@ -13,6 +13,7 @@ For now it`s just an api
 * RabbitMQ as message brocker (in progress)
 * OpenAPI for documenting API
 * Postman for checking API
+* UUID for ids
 
 ## TODO
 
@@ -20,6 +21,7 @@ For now it`s just an api
 * Methods for deleting data
 * Authorization
 * Database
+* ~~logger~~
 
 ---
 
