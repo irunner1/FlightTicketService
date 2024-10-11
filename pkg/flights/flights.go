@@ -72,7 +72,7 @@ func NewFlightService() FlightService {
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Flight
-// @Router /flights [get]
+// @Router /api/v1/flights [get]
 func (s *flightServiceImpl) GetFlights() ([]Flight, error) {
 	return s.flights, nil
 }
@@ -89,7 +89,7 @@ func (s *flightServiceImpl) GetFlights() ([]Flight, error) {
 // @Param arrival query string false "Arrival date and time"
 // @Success 200 {array} Flight
 // @Failure 404 "No flights found matching the search criteria"
-// @Router /flights/search [get]
+// @Router /api/v1/flights/search [get]
 func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, error) {
 	var matchingFlights = []Flight{}
 	for _, flight := range s.flights {
@@ -123,7 +123,7 @@ func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, e
 // @Param id path string true "Unique identifier of the flight"
 // @Success 200 {object} Flight
 // @Failure 404 "Flight not found"
-// @Router /flights/{id} [get]
+// @Router /api/v1/flights/{id} [get]
 func (s *flightServiceImpl) GetFlightByID(flightID string) (Flight, error) {
 	for _, flight := range s.flights {
 		if flight.ID == flightID {

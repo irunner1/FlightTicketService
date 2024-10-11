@@ -70,7 +70,7 @@ func NewBookingService() BookingService {
 // @Param ticket body Ticket true "Ticket data"
 // @Success 200 "Ticket successfully booked"
 // @Failure 400 "Invalid ticket data"
-// @Router /tickets/book [post]
+// @Router /api/v1/tickets/book [post]
 func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
 	if ticket == nil {
 		return errors.New("ticket cannot be nil")
@@ -101,7 +101,7 @@ func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
 // @Param ticketID path string true "The ID of the ticket to cancel"
 // @Success 200 "Ticket successfully cancelled"
 // @Failure 404 "Ticket not found"
-// @Router /tickets/{ticketID}/cancel [put]
+// @Router /api/v1/tickets/{ticketID}/cancel [post]
 func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 	if ticketID == "" {
 		return errors.New("ticket ID cannot be empty")
@@ -129,7 +129,7 @@ func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 // @Success 200 "Flight successfully changed for the ticket"
 // @Failure 400 "Invalid parameters"
 // @Failure 404 "Ticket not found or cannot change flight for a cancelled ticket"
-// @Router /tickets/{ticketID}/change [put]
+// @Router /api/v1/{ticketID}/change [post]
 func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) error {
 	if ticketID == "" || newFlightID == "" {
 		return errors.New("ticket ID and new flight ID cannot be empty")
@@ -154,9 +154,9 @@ func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) e
 // @Accept json
 // @Produce json
 // @Param id path string true "Unique identifier of the ticket"
-// @Success 200 {object} ticket
+// @Success 200 {object} Ticket
 // @Failure 404 "ticket not found"
-// @Router /tickets/{id} [get]
+// @Router /api/v1/tickets/{id} [get]
 func (s *bookingServiceImpl) GetTicketByID(ticketID string) (Ticket, error) {
 	for _, ticket := range s.tickets {
 		if ticket.ID == ticketID {
@@ -173,7 +173,7 @@ func (s *bookingServiceImpl) GetTicketByID(ticketID string) (Ticket, error) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Ticket
-// @Router /tickets [get]
+// @Router /api/v1/tickets [get]
 func (s *bookingServiceImpl) GetTickets() ([]Ticket, error) {
 	return s.tickets, nil
 }

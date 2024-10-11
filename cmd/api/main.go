@@ -11,9 +11,17 @@ import (
 	"flightticketservice/pkg/api"
 	"flightticketservice/utils"
 
+	_ "flightticketservice/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
-	// "flightticketservice/cmd/api/docs"
 )
+
+// @title Flight Ticket Service
+// @version 1.0
+// @description API Server for booking flight tickets
+
+// @host localhost:8010
+// @Basepath /
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -26,10 +34,6 @@ func main() {
 
 	r := mux.NewRouter()
 
-	// r.HandleFunc("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-	// 	http.ServeFile(w, r, "openapi.json")
-	// }).Methods("GET")
-	// r.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("path/to/swaggerui/"))))
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	r.HandleFunc("/api/v1/flights", api.GetFlights).Methods("GET")

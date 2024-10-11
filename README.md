@@ -14,6 +14,7 @@ For now it`s just an api
 * OpenAPI for documenting API
 * Postman for checking API
 * UUID for ids
+* OpenAPI Swagger
 
 ## TODO
 
