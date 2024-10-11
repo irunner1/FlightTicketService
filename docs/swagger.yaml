@@ -1,0 +1,238 @@
+basePath: /
+definitions:
+  booking.Ticket:
+    properties:
+      additional_info:
+        type: string
+      arrival_time:
+        type: string
+      booking_time:
+        type: string
+      departure_time:
+        type: string
+      flight_id:
+        type: string
+      id:
+        type: string
+      passenger_id:
+        type: string
+      seat_number:
+        type: string
+      status:
+        description: '"booked", "cancelled", "confirmed"'
+        type: string
+    type: object
+  flights.Flight:
+    description: Flight model for API response.
+    properties:
+      airline:
+        type: string
+      arrival:
+        type: string
+      departure:
+        type: string
+      destination:
+        type: string
+      id:
+        type: string
+      origin:
+        type: string
+      price:
+        type: number
+    type: object
+host: localhost:8010
+info:
+  contact: {}
+  description: API Server for booking flight tickets
+  title: Flight Ticket Service
+  version: "1.0"
+paths:
+  /api/v1/{ticketID}/change:
+    post:
+      consumes:
+      - application/json
+      description: Changes the flight associated with a ticket to a new flight using
+        the ticket ID and new flight ID.
+      parameters:
+      - description: The ID of the ticket to update
+        in: path
+        name: ticketID
+        required: true
+        type: string
+      - description: The new flight ID to associate with the ticket
+        in: query
+        name: newFlightID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Flight successfully changed for the ticket
+        "400":
+          description: Invalid parameters
+        "404":
+          description: Ticket not found or cannot change flight for a cancelled ticket
+      summary: Change the flight of a ticket
+      tags:
+      - booking
+  /api/v1/flights:
+    get:
+      consumes:
+      - application/json
+      description: get flights
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/flights.Flight'
+            type: array
+      summary: Get list of flights
+      tags:
+      - flights
+  /api/v1/flights/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves flight details for a specific flight ID.
+      parameters:
+      - description: Unique identifier of the flight
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/flights.Flight'
+        "404":
+          description: Flight not found
+      summary: Get flight by ID
+      tags:
+      - flights
+  /api/v1/flights/search:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of flights filtered by the provided search parameters.
+      parameters:
+      - description: Origin location of the flight
+        in: query
+        name: origin
+        type: string
+      - description: Destination location of the flight
+        in: query
+        name: destination
+        type: string
+      - description: Departure date and time
+        in: query
+        name: departure
+        type: string
+      - description: Arrival date and time
+        in: query
+        name: arrival
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/flights.Flight'
+            type: array
+        "404":
+          description: No flights found matching the search criteria
+      summary: Search flights by parameters
+      tags:
+      - flights
+  /api/v1/tickets:
+    get:
+      consumes:
+      - application/json
+      description: get tickets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/booking.Ticket'
+            type: array
+      summary: Get list of tickets
+      tags:
+      - tickets
+  /api/v1/tickets/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns ticket details for a specific ticket ID.
+      parameters:
+      - description: Unique identifier of the ticket
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/booking.Ticket'
+        "404":
+          description: ticket not found
+      summary: Get ticket by ID
+      tags:
+      - tickets
+  /api/v1/tickets/{ticketID}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancels an existing ticket using the ticket ID.
+      parameters:
+      - description: The ID of the ticket to cancel
+        in: path
+        name: ticketID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket successfully cancelled
+        "404":
+          description: Ticket not found
+      summary: Cancel a ticket
+      tags:
+      - booking
+  /api/v1/tickets/book:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new ticket booking for a flight.
+      parameters:
+      - description: Ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/booking.Ticket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket successfully booked
+        "400":
+          description: Invalid ticket data
+      summary: Book a new ticket
+      tags:
+      - booking
+swagger: "2.0"

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -10,32 +9,44 @@ import (
 	"github.com/joho/godotenv"
 
 	"flightticketservice/pkg/api"
+	"flightticketservice/utils"
+
+	_ "flightticketservice/docs"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// @title Flight Ticket Service
+// @version 1.0
+// @description API Server for booking flight tickets
+
+// @host localhost:8010
+// @Basepath /
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		utils.InfoLog.Print("No .env file found")
 	}
 
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
-	log.Printf("loaded env {'host': %s, 'port': %s}", host, port)
+	utils.InfoLog.Printf("loaded env {'host': %s, 'port': %s}", host, port)
 
 	r := mux.NewRouter()
 
-	// r.HandleFunc("/api/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-	// 	http.ServeFile(w, r, "openapi.json")
-	// }).Methods("GET")
-	// r.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("path/to/swaggerui/"))))
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	r.HandleFunc("/api/v1/flights", api.GetFlights).Methods("GET")
-	r.HandleFunc("/api/v1/flights_by_params", api.GetFlightsByParams).Methods("GET")
+	r.HandleFunc("/api/v1/flights/search", api.GetFlightsByParams).Methods("GET")
 	r.HandleFunc("/api/v1/flights/{id}", api.GetFlightInfo).Methods("GET")
 
-	r.HandleFunc("/api/v1/book_ticket", api.BookTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets", api.GetTickets).Methods("GET")
+	r.HandleFunc("/api/v1/tickets/{id}", api.GetTicketInfo).Methods("GET")
+
+	r.HandleFunc("/api/v1/tickets/book", api.BookTicket).Methods("POST")
 	r.HandleFunc("/api/v1/checkin", api.CheckInOnline).Methods("POST")
-	r.HandleFunc("/api/v1/change_ticket", api.ChangeTicket).Methods("POST")
-	r.HandleFunc("/api/v1/cancel_ticket", api.CancelTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{ticketID}/change", api.ChangeTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{ticketID}/cancel", api.CancelTicket).Methods("POST")
 
 	srv := &http.Server{
 		Handler:      r,
@@ -44,8 +55,8 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Println("Starting server on", srv.Addr)
+	utils.InfoLog.Println("Starting server on", srv.Addr)
 	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal("Server failed to start:", err)
+		utils.ErrorLog.Fatal("Server failed to start:", err)
 	}
 }
