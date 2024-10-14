@@ -20,11 +20,7 @@ For now it`s just an api
 
 You could open /swagger/ page to check documentation and all API methods
 
-<div align="center">
-  
-  <img src="" width="600">
-
-</div>
+![Swagger view](pictures/swagger.png?raw=true "Documentation page for an API")
 
 ## TODO
 
@@ -40,7 +36,7 @@ You could open /swagger/ page to check documentation and all API methods
 
 ```cmd
 % go build ./cmd/api
-% go run ./cmd/api/main.go 
+% go run ./cmd/api/main.go
 ```
 
 ## Example api`s

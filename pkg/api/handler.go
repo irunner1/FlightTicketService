@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flightticketservice/pkg/booking"
 	"flightticketservice/pkg/flights"
+	"flightticketservice/pkg/passenger"
 	"net/http"
 	"time"
 
@@ -122,7 +123,7 @@ func BookTicket(w http.ResponseWriter, r *http.Request) {
 	additionalInfo := queryParams.Get("additionalInfo")
 	flightID := queryParams.Get("flightID")
 
-	ticketID := generateTicketID()
+	ticketID := generateID()
 
 	if passengerID == "" || seatNumber == "" || flightID == "" {
 		utils.ErrorLog.Printf("Missing required parameters in BookTicket query")
@@ -164,7 +165,7 @@ func CheckInOnline(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// ChangeTicket handles requests for online registration.
+// ChangeTicket handles requests for changing tickets.
 func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("ChangeTicket called")
 
@@ -195,7 +196,7 @@ func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("Flight id changed")
 }
 
-// CancelTicket handles requests for online registration.
+// CancelTicket handles requests for ticket cancellation.
 func CancelTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CancelTicket called")
 
@@ -220,12 +221,6 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("Ticket Cancelled")
-}
-
-// generateTicketID generates unique ID for each ticket.
-func generateTicketID() string {
-	id := uuid.New()
-	return id.String()
 }
 
 // GetTickets handles requests for getting list of tickets.
@@ -264,4 +259,160 @@ func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tickets)
+}
+
+// GetPassengers handles requests for getting list of passengers.
+func GetPassengers(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("GetPassengers called")
+	PassengerSer := passenger.NewPassengerService()
+	passengers, err := PassengerSer.GetPassengers()
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error receiving passengers: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(passengers)
+}
+
+// GetPassengerByID handles requests for getting passenger by id.
+func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("GetPassengerByID called")
+
+	vars := mux.Vars(r)
+	passengerID := vars["id"]
+
+	PassengerSer := passenger.NewPassengerService()
+	passenger, err := PassengerSer.GetPassengerByID(passengerID)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error receiving flight: %v", err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(passenger)
+}
+
+// CreatePassenger handles requests for creating passenger.
+func CreatePassenger(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("CreatePassenger called")
+
+	queryParams := r.URL.Query()
+	utils.InfoLog.Println(queryParams)
+	userName := queryParams.Get("name")
+	userSurname := queryParams.Get("surname")
+	email := queryParams.Get("email")
+	password := queryParams.Get("password")
+
+	passengerID := generateID()
+
+	if userName == "" || userSurname == "" || email == "" || password == "" {
+		utils.ErrorLog.Printf("Missing required parameters in CreatePassenger query")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	newPassenger := passenger.Passenger{
+		ID:        passengerID,
+		FirstName: userName,
+		LastName:  userSurname,
+		Email:     email,
+		Password:  password,
+		CreatedAt: time.Now(),
+	}
+	utils.InfoLog.Println("new ticked: ", newPassenger, " created")
+
+	passengerSer := passenger.NewPassengerService()
+	err := passengerSer.CreatePassenger(&newPassenger)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("Passenger created")
+}
+
+// UpdatePassenger handles requests for updating passenger.
+func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("UpdatePassenger called")
+
+	vars := mux.Vars(r)
+	passengerID := vars["passengerID"]
+	queryParams := r.URL.Query()
+	utils.InfoLog.Println(queryParams)
+	name := queryParams.Get("name")
+	surname := queryParams.Get("surname")
+	email := queryParams.Get("email")
+	password := queryParams.Get("password")
+
+	newPassenger := passenger.Passenger{
+		ID:        generateID(),
+		FirstName: name,
+		LastName:  surname,
+		Email:     email,
+		Password:  password,
+		CreatedAt: time.Now().Add(-24 * time.Hour),
+	}
+
+	if passengerID == "" {
+		utils.ErrorLog.Printf("Missing required parameters in UpdatePassenger query")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	passengerSer := passenger.NewPassengerService()
+	err := passengerSer.UpdatePassenger(passengerID, &newPassenger)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("Passenger updated")
+}
+
+// DeletePassenger handles requests for deleting passenger.
+func DeletePassenger(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("DeletePassenger called")
+
+	vars := mux.Vars(r)
+	passengerID := vars["passengerID"]
+
+	if passengerID == "" {
+		utils.ErrorLog.Printf("passenger id is empty")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	passengerSer := passenger.NewPassengerService()
+	err := passengerSer.DeletePassenger(passengerID)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error in DeletePassenger: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("Passenger deleted")
+}
+
+// generateID generates unique ID.
+func generateID() string {
+	id := uuid.New()
+	return id.String()
 }
