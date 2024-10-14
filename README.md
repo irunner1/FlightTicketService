@@ -20,11 +20,7 @@ For now it`s just an api
 
 You could open /swagger/ page to check documentation and all API methods
 
-<div align="center">
-  
-  <img src="https://github.com/irunner1/FlightTicketService/blob/master/pictures/swagger.png?raw=true" width="600">
-
-</div>
+![Swagger view](pictures/swagger.png?raw=true "Documentation page for an API")
 
 ## TODO
 
