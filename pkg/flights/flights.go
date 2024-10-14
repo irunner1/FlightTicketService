@@ -65,7 +65,6 @@ func NewFlightService() FlightService {
 	}
 }
 
-// GetFlights returns list of flights.
 // @Summary Get list of flights
 // @Description get flights
 // @Tags flights
@@ -77,7 +76,6 @@ func (s *flightServiceImpl) GetFlights() ([]Flight, error) {
 	return s.flights, nil
 }
 
-// GetFlightsByParams searches for flights based on specified parameters.
 // @Summary Search flights by parameters
 // @Description Retrieves a list of flights filtered by the provided search parameters.
 // @Tags flights
@@ -113,10 +111,8 @@ func (s *flightServiceImpl) GetFlightsByParams(params SearchParams) ([]Flight, e
 	return matchingFlights, nil
 }
 
-// GetFlightByID gets info about flight by id.
-// GetFlightByID retrieves a flight by its unique identifier.
 // @Summary Get flight by ID
-// @Description Retrieves flight details for a specific flight ID.
+// @Description Gets flight details for a specific flight ID.
 // @Tags flights
 // @Accept json
 // @Produce json

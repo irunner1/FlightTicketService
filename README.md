@@ -22,7 +22,7 @@ You could open /swagger/ page to check documentation and all API methods
 
 <div align="center">
   
-  <img src="" width="600">
+  <img src="https://github.com/irunner1/FlightTicketService/blob/master/pictures/swagger.png?raw=true" width="600">
 
 </div>
 

@@ -61,7 +61,6 @@ func NewBookingService() BookingService {
 	return &bookingServiceImpl{tickets: sampleTickets}
 }
 
-// BookTicket creates a new ticket booking.
 // @Summary Book a new ticket
 // @Description Creates a new ticket booking for a flight.
 // @Tags booking
@@ -92,8 +91,7 @@ func (s *bookingServiceImpl) BookTicket(ticket *Ticket) error {
 	return nil
 }
 
-// CancelTicket cancels an existing ticket.
-// @Summary Cancel a ticket
+// @Summary Cancel an existing ticket
 // @Description Cancels an existing ticket using the ticket ID.
 // @Tags booking
 // @Accept json
@@ -118,7 +116,6 @@ func (s *bookingServiceImpl) CancelTicket(ticketID string) error {
 	return errors.New("ticket not found")
 }
 
-// ChangeFlight changes the flight for an existing ticket.
 // @Summary Change the flight of a ticket
 // @Description Changes the flight associated with a ticket to a new flight using the ticket ID and new flight ID.
 // @Tags booking
@@ -147,7 +144,6 @@ func (s *bookingServiceImpl) ChangeFlight(ticketID string, newFlightID string) e
 	return errors.New("ticket not found")
 }
 
-// GetFlightByID returns a ticket by its unique identifier.
 // @Summary Get ticket by ID
 // @Description Returns ticket details for a specific ticket ID.
 // @Tags tickets
@@ -166,7 +162,6 @@ func (s *bookingServiceImpl) GetTicketByID(ticketID string) (Ticket, error) {
 	return Ticket{}, errors.New("flight not found")
 }
 
-// GetTickets returns list of tickets.
 // @Summary Get list of tickets
 // @Description get tickets
 // @Tags tickets
