@@ -16,6 +16,16 @@ For now it`s just an api
 * UUID for ids
 * OpenAPI Swagger
 
+## Documentation
+
+You could open /swagger/ page to check documentation and all API methods
+
+<div align="center">
+  
+  <img src="" width="600">
+
+</div>
+
 ## TODO
 
 * Methods for adding data
