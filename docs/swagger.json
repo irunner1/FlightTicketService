@@ -92,7 +92,7 @@
         },
         "/api/v1/flights/{id}": {
             "get": {
-                "description": "Retrieves flight details for a specific flight ID.",
+                "description": "Gets flight details for a specific flight ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -121,6 +121,193 @@
                     },
                     "404": {
                         "description": "Flight not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/passengers": {
+            "get": {
+                "description": "get passengers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "passengers"
+                ],
+                "summary": "Get list of passengers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/passenger.Passenger"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/passengers/create": {
+            "post": {
+                "description": "Creates new passenger profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "passengers"
+                ],
+                "summary": "Creates passenger",
+                "parameters": [
+                    {
+                        "description": "Passenger data",
+                        "name": "passenger",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/passenger.Passenger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passenger created"
+                    },
+                    "400": {
+                        "description": "Invalid passenger data"
+                    }
+                }
+            }
+        },
+        "/api/v1/passengers/{id}": {
+            "get": {
+                "description": "Gets passenger details for a specific passenger ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "passengers"
+                ],
+                "summary": "Get passenger by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the passenger",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/passenger.Passenger"
+                        }
+                    },
+                    "404": {
+                        "description": "Missing required parameters"
+                    }
+                }
+            }
+        },
+        "/api/v1/passengers/{id}/delete": {
+            "delete": {
+                "description": "Delete a passenger by their unique identifier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "passengers"
+                ],
+                "summary": "Delete passenger",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the passenger",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passenger deleted"
+                    },
+                    "404": {
+                        "description": "Passenger not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/passengers/{id}/update": {
+            "post": {
+                "description": "Update an existing passenger's details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "passengers"
+                ],
+                "summary": "Update passenger data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the passenger",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User surname",
+                        "name": "surname",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User password",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passenger updated"
+                    },
+                    "404": {
+                        "description": "Passenger not found"
                     }
                 }
             }
@@ -232,7 +419,7 @@
                 "tags": [
                     "booking"
                 ],
-                "summary": "Cancel a ticket",
+                "summary": "Cancel an existing ticket",
                 "parameters": [
                     {
                         "type": "string",
@@ -353,6 +540,26 @@
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "passenger.Passenger": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
                 }
             }
         }

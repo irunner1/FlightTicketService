@@ -40,6 +40,12 @@ func main() {
 	r.HandleFunc("/api/v1/flights/search", api.GetFlightsByParams).Methods("GET")
 	r.HandleFunc("/api/v1/flights/{id}", api.GetFlightInfo).Methods("GET")
 
+	r.HandleFunc("/api/v1/passengers", api.GetPassengers).Methods("GET")
+	r.HandleFunc("/api/v1/passengers/{id}", api.GetPassengerByID).Methods("GET")
+	r.HandleFunc("/api/v1/passengers/create", api.CreatePassenger).Methods("POST")
+	r.HandleFunc("/api/v1/passengers/{id}/update", api.UpdatePassenger).Methods("POST")
+	r.HandleFunc("/api/v1/passengers/{id}/delete ", api.DeletePassenger).Methods("DELETE")
+
 	r.HandleFunc("/api/v1/tickets", api.GetTickets).Methods("GET")
 	r.HandleFunc("/api/v1/tickets/{id}", api.GetTicketInfo).Methods("GET")
 

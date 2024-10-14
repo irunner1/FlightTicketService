@@ -70,7 +70,7 @@ func (s *passengerServiceImpl) GetPassengers() ([]Passenger, error) {
 // @Produce json
 // @Param id path string true "Unique identifier of the passenger"
 // @Success 200 {object} Passenger
-// @Failure 404 "passenger not found"
+// @Failure 404 "Missing required parameters"
 // @Router /api/v1/passengers/{id} [get]
 func (s *passengerServiceImpl) GetPassengerByID(passengerID string) (Passenger, error) {
 	for _, passenger := range s.passengers {
@@ -87,9 +87,9 @@ func (s *passengerServiceImpl) GetPassengerByID(passengerID string) (Passenger, 
 // @Accept json
 // @Produce json
 // @Param passenger body Passenger true "Passenger data"
-// @Success 200 {array} "Passenger created"
+// @Success 200 "Passenger created"
 // @Failure 400 "Invalid passenger data"
-// @Router /api/v1/users/create [post]
+// @Router /api/v1/passengers/create [post]
 func (s *passengerServiceImpl) CreatePassenger(passenger *Passenger) error {
 	if passenger == nil {
 		return errors.New("passenger cannot be nil")
@@ -113,9 +113,12 @@ func (s *passengerServiceImpl) CreatePassenger(passenger *Passenger) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Unique identifier of the passenger"
-// @Param body path Passenger true "New passenger data"
-// @Success 200 {object} "passenger updated"
-// @Failure 404 "passenger not found"
+// @Param name query string true "User name"
+// @Param surname query string true "User surname"
+// @Param email query string true "User email"
+// @Param password query string true "User password"
+// @Success 200 "Passenger updated"
+// @Failure 404 "Passenger not found"
 // @Router /api/v1/passengers/{id}/update [post]
 func (s *passengerServiceImpl) UpdatePassenger(passengerID string, updatedPassenger *Passenger) error {
 	if passengerID == "" || updatedPassenger == nil {
@@ -139,9 +142,9 @@ func (s *passengerServiceImpl) UpdatePassenger(passengerID string, updatedPassen
 // @Accept json
 // @Produce json
 // @Param id path string true "Unique identifier of the passenger"
-// @Success 200 {object} "passenger deleted"
-// @Failure 404 "passenger not found"
-// @Router /api/v1/passengers/{id}/delete [post]
+// @Success 200 "Passenger deleted"
+// @Failure 404 "Passenger not found"
+// @Router /api/v1/passengers/{id}/delete [delete]
 func (s *passengerServiceImpl) DeletePassenger(passengerID string) error {
 	if passengerID == "" {
 		return errors.New("passenger ID cannot be empty")

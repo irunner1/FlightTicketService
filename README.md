@@ -40,7 +40,7 @@ You could open /swagger/ page to check documentation and all API methods
 
 ```cmd
 % go build ./cmd/api
-% go run ./cmd/api/main.go 
+% go run ./cmd/api/main.go
 ```
 
 ## Example api`s
