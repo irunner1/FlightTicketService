@@ -55,10 +55,15 @@ docker run -it -p 8080:8080 --env-file=.env airticketfinder
 
 ```cmd
 HOST=0.0.0.0
-PORT=8080
+PORT=80
+DB_USER=me
+DB_PASS=123123
+
 ```
 
-* HOST - хост запускаемой программы
-* PORT - порт запускаемой программы
+* HOST - application host
+* PORT - application port
+* DB_USER - database user name
+* DB_PASS - database user password
 
 ---

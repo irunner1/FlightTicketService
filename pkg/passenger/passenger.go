@@ -1,76 +1,68 @@
 package passenger
 
 import (
+	"database/sql"
 	"errors"
-	"time"
+	"flightticketservice/utils"
+	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
-// PassengerService interface implements methods for managing passengers.
-type PassengerService interface {
-	GetPassengers() ([]Passenger, error)
-	GetPassengerByID(passengerID string) (Passenger, error)
-	CreatePassenger(passenger *Passenger) error
+// Storage collects methods for postgres
+type Storage interface {
+	CreatePassenger(*Passenger) error
+	GetPassengers() ([]*Passenger, error)
+	GetPassengerByID(passengerID string) (*Passenger, error)
 	UpdatePassenger(passengerID string, passenger *Passenger) error
 	DeletePassenger(passengerID string) error
 }
 
-// passengerServiceImpl structure implements interface PassengerService.
-type passengerServiceImpl struct {
-	passengers []Passenger
+// PostgresStore stores db pointer
+type PostgresStore struct {
+	db *sql.DB
 }
 
-// NewPassengerService creates PassengerService with predefined passengers.
-func NewPassengerService() PassengerService {
-	samplePassengers := []Passenger{
-		{
-			ID:        "passenger1",
-			FirstName: "John",
-			LastName:  "Doe",
-			Email:     "john.doe@example.com",
-			Password:  "test123123",
-			CreatedAt: time.Now().Add(-24 * time.Hour),
-		},
-		{
-			ID:        "passenger2",
-			FirstName: "Jane",
-			LastName:  "Smith",
-			Email:     "jane.smith@example.com",
-			Password:  "password123",
-			CreatedAt: time.Now().Add(-48 * time.Hour),
-		},
+// NewPostgresStore creates connection woth postgres
+func NewPostgresStore(user, password string) (*PostgresStore, error) {
+	connStr := fmt.Sprintf("user=%s dbname=postgres password=%s sslmode=disable", user, password)
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		utils.ErrorLog.Fatal(err)
+		return nil, err
 	}
-	return &passengerServiceImpl{passengers: samplePassengers}
-}
 
-// @Summary Get list of passengers
-// @Description get passengers
-// @Tags passengers
-// @Accept  json
-// @Produce  json
-// @Success 200 {array} Passenger
-// @Router /api/v1/passengers [get]
-func (s *passengerServiceImpl) GetPassengers() ([]Passenger, error) {
-	return s.passengers, nil
-}
-
-// @Summary Get passenger by ID
-// @Description Gets passenger details for a specific passenger ID.
-// @Tags passengers
-// @Accept json
-// @Produce json
-// @Param id path string true "Unique identifier of the passenger"
-// @Success 200 {object} Passenger
-// @Failure 404 "Missing required parameters"
-// @Router /api/v1/passengers/{id} [get]
-func (s *passengerServiceImpl) GetPassengerByID(passengerID string) (Passenger, error) {
-	for _, passenger := range s.passengers {
-		if passenger.ID == passengerID {
-			return passenger, nil
-		}
+	if err := db.Ping(); err != nil {
+		utils.ErrorLog.Fatal(err)
+		return nil, err
 	}
-	return Passenger{}, errors.New("passenger not found")
+
+	return &PostgresStore{
+		db: db,
+	}, nil
 }
 
+// Init initializes db with data
+func (s *PostgresStore) Init() error {
+	return s.CreatePassengerTable()
+}
+
+// CreatePassengerTable creates passenger table in db
+func (s *PostgresStore) CreatePassengerTable() error {
+	query := `create table if not exists passengers (
+		ID serial primary key,
+		first_name varchar(30),
+		last_name  varchar(30),    
+		email     varchar(30),    
+		password  varchar(30),    
+		created_at timestamp
+	)`
+
+	_, err := s.db.Exec(query)
+	return err
+}
+
+// CreatePassenger creates passenger in table
 // @Summary Creates passenger
 // @Description Creates new passenger profile
 // @Tags passengers
@@ -80,23 +72,28 @@ func (s *passengerServiceImpl) GetPassengerByID(passengerID string) (Passenger, 
 // @Success 200 "Passenger created"
 // @Failure 400 "Invalid passenger data"
 // @Router /api/v1/passengers/create [post]
-func (s *passengerServiceImpl) CreatePassenger(passenger *Passenger) error {
-	if passenger == nil {
-		return errors.New("passenger cannot be nil")
+func (s *PostgresStore) CreatePassenger(pass *Passenger) error {
+	query := `insert into passengers
+	(first_name, last_name, email, password, created_at) 
+	values ($1, $2, $3, $4, $5)`
+
+	resp, err := s.db.Query(
+		query,
+		pass.FirstName,
+		pass.LastName,
+		pass.Email,
+		pass.Password,
+		pass.CreatedAt)
+
+	if err != nil {
+		return err
 	}
-	if passenger.ID == "" {
-		return errors.New("passenger ID cannot be empty")
-	}
-	for _, p := range s.passengers {
-		if p.ID == passenger.ID {
-			return errors.New("passenger with this ID already exists")
-		}
-	}
-	passenger.CreatedAt = time.Now()
-	s.passengers = append(s.passengers, *passenger)
+
+	fmt.Printf("%+v\n", resp)
 	return nil
 }
 
+// UpdatePassenger updates pasanger by id
 // @Summary Update passenger data
 // @Description Update an existing passenger's details.
 // @Tags passengers
@@ -110,22 +107,29 @@ func (s *passengerServiceImpl) CreatePassenger(passenger *Passenger) error {
 // @Success 200 "Passenger updated"
 // @Failure 404 "Passenger not found"
 // @Router /api/v1/passengers/{id}/update [post]
-func (s *passengerServiceImpl) UpdatePassenger(passengerID string, updatedPassenger *Passenger) error {
-	if passengerID == "" || updatedPassenger == nil {
-		return errors.New("passenger ID cannot be empty and updated passenger cannot be nil")
+func (s *PostgresStore) UpdatePassenger(id string, newPassenger *Passenger) error {
+
+	if newPassenger == nil {
+		return errors.New("update request is nil")
 	}
-	for i, p := range s.passengers {
-		if p.ID == passengerID {
-			s.passengers[i].FirstName = updatedPassenger.FirstName
-			s.passengers[i].LastName = updatedPassenger.LastName
-			s.passengers[i].Email = updatedPassenger.Email
-			s.passengers[i].Password = updatedPassenger.Password
-			return nil
-		}
+
+	query := "UPDATE passengers SET first_name = $1, last_name = $2, email = $3 WHERE id = $4"
+
+	_, err := s.db.Query(
+		query,
+		newPassenger.FirstName,
+		newPassenger.LastName,
+		newPassenger.Email,
+		id)
+
+	if err != nil {
+		return err
 	}
-	return errors.New("passenger not found")
+
+	return nil
 }
 
+// DeletePassenger deletes pasanger from db
 // @Summary Delete passenger
 // @Description Delete a passenger by their unique identifier
 // @Tags passengers
@@ -135,15 +139,71 @@ func (s *passengerServiceImpl) UpdatePassenger(passengerID string, updatedPassen
 // @Success 200 "Passenger deleted"
 // @Failure 404 "Passenger not found"
 // @Router /api/v1/passengers/{id}/delete [delete]
-func (s *passengerServiceImpl) DeletePassenger(passengerID string) error {
-	if passengerID == "" {
-		return errors.New("passenger ID cannot be empty")
+func (s *PostgresStore) DeletePassenger(id string) error {
+	_, err := s.db.Query("delete from account where id = $1", id)
+	return err
+}
+
+// GetPassengerByID returns passenger by id
+// @Summary Get passenger by ID
+// @Description Gets passenger details for a specific passenger ID.
+// @Tags passengers
+// @Accept json
+// @Produce json
+// @Param id path string true "Unique identifier of the passenger"
+// @Success 200 {object} Passenger
+// @Failure 404 "Missing required parameters"
+// @Router /api/v1/passengers/{id} [get]
+func (s *PostgresStore) GetPassengerByID(id string) (*Passenger, error) {
+	rows, err := s.db.Query("select * from passengers where id = $1", id)
+	if err != nil {
+		return nil, err
 	}
-	for i, p := range s.passengers {
-		if p.ID == passengerID {
-			s.passengers = append(s.passengers[:i], s.passengers[i+1:]...)
-			return nil
+
+	for rows.Next() {
+		return scanPassenger(rows)
+	}
+
+	return nil, errors.New("passenger not found")
+}
+
+// GetPassengers return list of passengers
+// @Summary Get list of passengers
+// @Description get passengers
+// @Tags passengers
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Passenger
+// @Router /api/v1/passengers [get]
+func (s *PostgresStore) GetPassengers() ([]*Passenger, error) {
+	rows, err := s.db.Query("select * from passengers")
+	if err != nil {
+		return nil, err
+	}
+
+	passengers := []*Passenger{}
+	for rows.Next() {
+		passenger, err := scanPassenger(rows)
+
+		if err != nil {
+			return nil, err
 		}
+
+		passengers = append(passengers, passenger)
 	}
-	return errors.New("passenger not found")
+
+	return passengers, nil
+}
+
+func scanPassenger(rows *sql.Rows) (*Passenger, error) {
+	passenger := new(Passenger)
+	err := rows.Scan(
+		&passenger.ID,
+		&passenger.FirstName,
+		&passenger.LastName,
+		&passenger.Email,
+		&passenger.Password,
+		&passenger.CreatedAt)
+
+	return passenger, err
 }

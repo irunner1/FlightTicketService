@@ -5,7 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"flightticketservice/internal/db"
+	db "flightticketservice/pkg/passenger"
 	"flightticketservice/utils"
 
 	_ "flightticketservice/docs"
@@ -23,7 +23,7 @@ func main() {
 		utils.InfoLog.Print("No .env file found")
 	}
 
-	store, err := db.NewPostgresStore()
+	store, err := db.NewPostgresStore(os.Getenv("DB_USER"), os.Getenv("DB_PASS"))
 
 	if err != nil {
 		utils.ErrorLog.Fatal(err)

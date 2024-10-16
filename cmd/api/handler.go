@@ -226,11 +226,11 @@ func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, tickets)
 }
 
-// GetPassengers handles requests for getting list of passengers.
-func GetPassengers(w http.ResponseWriter, r *http.Request) {
+// handleGetPassengers handles requests for getting list of passengers.
+func (s *APIServer) handleGetPassengers(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetPassengers called")
-	PassengerSer := p.NewPassengerService()
-	passengers, err := PassengerSer.GetPassengers()
+
+	passengers, err := s.store.GetPassengers()
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving passengers: %v", err)
@@ -241,15 +241,14 @@ func GetPassengers(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, passengers)
 }
 
-// GetPassengerByID handles requests for getting passenger by id.
-func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
+// handleGetPassengerByID handles requests for getting passenger by id.
+func (s *APIServer) handleGetPassengerByID(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetPassengerByID called")
 
 	vars := mux.Vars(r)
 	passengerID := vars["id"]
 
-	PassengerSer := p.NewPassengerService()
-	passenger, err := PassengerSer.GetPassengerByID(passengerID)
+	passenger, err := s.store.GetPassengerByID(passengerID)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving flight: %v", err)
@@ -260,8 +259,8 @@ func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, passenger)
 }
 
-// HandleCreatePassenger handles requests for creating passenger.
-func (s *APIServer) HandleCreatePassenger(w http.ResponseWriter, r *http.Request) {
+// handleCreatePassenger handles requests for creating passenger.
+func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CreatePassenger called")
 
 	createPassengerReq := new(p.CreatePassengerReq)
@@ -287,27 +286,12 @@ func (s *APIServer) HandleCreatePassenger(w http.ResponseWriter, r *http.Request
 	WriteJSON(w, http.StatusCreated, "Passenger created")
 }
 
-// UpdatePassenger handles requests for updating passenger.
-func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
+// handleUpdatePassenger handles requests for updating passenger.
+func (s *APIServer) handleUpdatePassenger(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("UpdatePassenger called")
 
 	vars := mux.Vars(r)
-	passengerID := vars["passengerID"]
-	queryParams := r.URL.Query()
-	utils.InfoLog.Println(queryParams)
-	name := queryParams.Get("name")
-	surname := queryParams.Get("surname")
-	email := queryParams.Get("email")
-	password := queryParams.Get("password")
-
-	newPassenger := p.Passenger{
-		ID:        generateID(),
-		FirstName: name,
-		LastName:  surname,
-		Email:     email,
-		Password:  password,
-		CreatedAt: time.Now().Add(-24 * time.Hour),
-	}
+	passengerID := vars["id"]
 
 	if passengerID == "" {
 		utils.ErrorLog.Printf("Missing required parameters in UpdatePassenger query")
@@ -315,20 +299,33 @@ func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passengerSer := p.NewPassengerService()
-	err := passengerSer.UpdatePassenger(passengerID, &newPassenger)
+	queryParams := r.URL.Query()
+	utils.InfoLog.Println(queryParams)
 
-	if err != nil {
-		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	createPassengerReq := new(p.CreatePassengerReq)
+	if err := json.NewDecoder(r.Body).Decode(createPassengerReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode passenger data")
+		return
+	}
+
+	newPassenger := p.NewPassenger(
+		createPassengerReq.FirstName,
+		createPassengerReq.LastName,
+		createPassengerReq.Email,
+		createPassengerReq.Password,
+	)
+	utils.InfoLog.Println("new passenger: ", newPassenger, " created")
+
+	if err := s.store.UpdatePassenger(passengerID, newPassenger); err != nil {
+		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
 		return
 	}
 
 	WriteJSON(w, http.StatusOK, "Passenger updated")
 }
 
-// DeletePassenger handles requests for deleting passenger.
-func DeletePassenger(w http.ResponseWriter, r *http.Request) {
+// handleDeletePassenger handles requests for deleting passenger.
+func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("DeletePassenger called")
 
 	vars := mux.Vars(r)
@@ -340,10 +337,7 @@ func DeletePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passengerSer := p.NewPassengerService()
-	err := passengerSer.DeletePassenger(passengerID)
-
-	if err != nil {
+	if err := s.store.DeletePassenger(passengerID); err != nil {
 		utils.ErrorLog.Printf("Error in DeletePassenger: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

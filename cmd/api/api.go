@@ -1,26 +1,25 @@
 package main
 
 import (
-	db "flightticketservice/internal/db"
+	p "flightticketservice/pkg/passenger"
 	"flightticketservice/utils"
 	"log"
 	"net/http"
 	"time"
 
-	// "flightticketservice/pkg/api"
-
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// APIServer collects service settings and storage
 type APIServer struct {
 	listenAddr string
 	listenPort string
-	store      db.Storage
+	store      p.Storage
 }
 
 // NewAPIServer creates API server
-func NewAPIServer(listenAddr, listenPort string, store db.Storage) *APIServer {
+func NewAPIServer(listenAddr, listenPort string, store p.Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		listenPort: listenPort,
@@ -38,11 +37,11 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/flights/search", GetFlightsByParams).Methods("GET")
 	r.HandleFunc("/api/v1/flights/{id}", GetFlightInfo).Methods("GET")
 
-	r.HandleFunc("/api/v1/passengers", GetPassengers).Methods("GET")
-	r.HandleFunc("/api/v1/passengers/{id}", GetPassengerByID).Methods("GET")
-	r.HandleFunc("/api/v1/passengers/create", s.HandleCreatePassenger).Methods("POST")
-	r.HandleFunc("/api/v1/passengers/{id}/update", UpdatePassenger).Methods("POST")
-	r.HandleFunc("/api/v1/passengers/{id}/delete ", DeletePassenger).Methods("DELETE")
+	r.HandleFunc("/api/v1/passengers", s.handleGetPassengers).Methods("GET")
+	r.HandleFunc("/api/v1/passengers/{id}", s.handleGetPassengerByID).Methods("GET")
+	r.HandleFunc("/api/v1/passengers/create", s.handleCreatePassenger).Methods("POST")
+	r.HandleFunc("/api/v1/passengers/{id}/update", s.handleUpdatePassenger).Methods("POST")
+	r.HandleFunc("/api/v1/passengers/{id}/delete ", s.handleDeletePassenger).Methods("DELETE")
 
 	r.HandleFunc("/api/v1/tickets", GetTickets).Methods("GET")
 	r.HandleFunc("/api/v1/tickets/{id}", GetTicketInfo).Methods("GET")
