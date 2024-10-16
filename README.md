@@ -9,7 +9,7 @@ For now it`s just an api
 * Go
 * Docker
 * JWT tocken for authorization (in progress)
-* Postgres for storage (in progress)
+* Postgres for storage
 * RabbitMQ as message brocker (in progress)
 * OpenAPI for documenting API
 * Postman for checking API
@@ -44,14 +44,14 @@ You could open /swagger/ page to check documentation and all API methods
 
 ```bash
 # Сборка
-docker build -t airticketfinder .
+docker build -t flightticketservice .
 
 # Запуск
-docker run -it -p 8080:8080 --env-file=.env airticketfinder
+docker run -it -p 8080:8080 --env-file=.env flightticketservice
 
 ```
 
-Для запуска необходимо подготовить файл переменных окружения (.env) c примерным содержанием:
+You need to prepare .env file with variables:
 
 ```cmd
 HOST=0.0.0.0
