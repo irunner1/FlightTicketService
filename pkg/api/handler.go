@@ -14,22 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// FlightSearchParameters collects parameters for searching flights.
-type FlightSearchParameters struct {
-	DepartureDate string `json:"departure_date"`
-	ArrivalDate   string `json:"arrival_date"`
-	TicketType    string `json:"ticket_type"`
-	Baggage       bool   `json:"baggage"`
-}
-
-// FlightInfo collects flight info.
-type FlightInfo struct {
-	FlightID      string `json:"flight_id"`
-	BaggageAllow  bool   `json:"baggage_allow"`
-	HandLuggage   bool   `json:"hand_luggage"`
-	TicketReturns bool   `json:"ticket_returns"`
-}
-
 // GetFlights handles requests for getting list of flights.
 func GetFlights(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetFlights called")

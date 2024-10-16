@@ -5,19 +5,6 @@ import (
 	"time"
 )
 
-// Ticket collects info about ticket.
-type Ticket struct {
-	ID             string    `json:"id"`
-	FlightID       string    `json:"flight_id"`
-	PassengerID    string    `json:"passenger_id"`
-	BookingTime    time.Time `json:"booking_time"`
-	DepartureTime  time.Time `json:"departure_time"`
-	ArrivalTime    time.Time `json:"arrival_time"`
-	Status         string    `json:"status"` // "booked", "cancelled", "confirmed"
-	SeatNumber     string    `json:"seat_number"`
-	AdditionalInfo string    `json:"additional_info"`
-}
-
 // BookingService interface inmplements methods for booking.
 type BookingService interface {
 	GetTickets() ([]Ticket, error)

@@ -35,8 +35,7 @@ You could open /swagger/ page to check documentation and all API methods
 ## Service startup
 
 ```cmd
-% go build ./cmd/api
-% go run ./cmd/api/main.go
+% make run
 ```
 
 ## Example api`s

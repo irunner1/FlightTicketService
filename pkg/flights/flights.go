@@ -5,31 +5,11 @@ import (
 	"time"
 )
 
-// Flight collects flight data.
-// @Description Flight model for API response.
-type Flight struct {
-	ID          string    `json:"id"`
-	Airline     string    `json:"airline"`
-	Origin      string    `json:"origin"`
-	Destination string    `json:"destination"`
-	Departure   time.Time `json:"departure"`
-	Arrival     time.Time `json:"arrival"`
-	Price       float64   `json:"price"`
-}
-
 // FlightService interface for working with flights.
 type FlightService interface {
 	GetFlights() ([]Flight, error)
 	GetFlightsByParams(params SearchParams) ([]Flight, error)
 	GetFlightByID(flightID string) (Flight, error)
-}
-
-// SearchParams collects parameters for searching flights.
-type SearchParams struct {
-	Origin      string
-	Destination string
-	Departure   time.Time
-	Arrival     time.Time
 }
 
 // flightServiceImpl structure implements interface FlightService.
