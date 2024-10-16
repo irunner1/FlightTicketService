@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
+	"flightticketservice/internal/db"
 	"flightticketservice/pkg/api"
 	"flightticketservice/utils"
 
@@ -26,6 +27,16 @@ import (
 func main() {
 	if err := godotenv.Load(); err != nil {
 		utils.InfoLog.Print("No .env file found")
+	}
+
+	store, err := db.NewPostgresStore()
+
+	if err != nil {
+		utils.ErrorLog.Fatal(err)
+	}
+
+	if err := store.Init(); err != nil {
+		utils.ErrorLog.Fatal(err)
 	}
 
 	host := os.Getenv("HOST")

@@ -42,14 +42,10 @@ func GetFlights(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flights)
+	WriteJSON(w, http.StatusOK, flights)
 }
 
 // GetFlightsByParams handles requests for getting list of flights by parameters.
-// GET /flights_by_params?origin=Moscow&destination=Istanbul&departure=2024-04-15T10:00:00Z&arrival=2024-04-15T13:30:00Z
-// GET /flights_by_params?origin=New%20York&destination=London&departure=2023-04-15T08:00:00Z&arrival=2023-04-15T20:00:00Z
 func GetFlightsByParams(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetFlightsByParams called")
 
@@ -86,9 +82,7 @@ func GetFlightsByParams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flights)
+	WriteJSON(w, http.StatusOK, flights)
 }
 
 // GetFlightInfo handles requests for getting flight info.
@@ -106,13 +100,10 @@ func GetFlightInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(flight)
+	WriteJSON(w, http.StatusOK, flight)
 }
 
 // BookTicket handles requests for booking flight.
-// POST /book_ticket?passengerID=passenger1&seatNumber=12A&additionalInfo=V&flightID=flight1
 func BookTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("BookTicket called")
 
@@ -153,16 +144,14 @@ func BookTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Ticket booked")
+	WriteJSON(w, http.StatusOK, "Ticket booked")
 }
 
 // CheckInOnline handles requests for online registration.
 func CheckInOnline(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CheckInOnline called")
 
-	w.WriteHeader(http.StatusOK)
+	WriteJSON(w, http.StatusOK, "")
 }
 
 // ChangeTicket handles requests for changing tickets.
@@ -191,9 +180,7 @@ func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Flight id changed")
+	WriteJSON(w, http.StatusOK, "Flight id changed")
 }
 
 // CancelTicket handles requests for ticket cancellation.
@@ -218,9 +205,7 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Ticket Cancelled")
+	WriteJSON(w, http.StatusOK, "Ticket Cancelled")
 }
 
 // GetTickets handles requests for getting list of tickets.
@@ -236,9 +221,7 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tickets)
+	WriteJSON(w, http.StatusOK, tickets)
 }
 
 // GetTicketInfo handles requests for getting ticket info.
@@ -256,9 +239,7 @@ func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tickets)
+	WriteJSON(w, http.StatusOK, tickets)
 }
 
 // GetPassengers handles requests for getting list of passengers.
@@ -273,9 +254,7 @@ func GetPassengers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(passengers)
+	WriteJSON(w, http.StatusOK, passengers)
 }
 
 // GetPassengerByID handles requests for getting passenger by id.
@@ -294,9 +273,7 @@ func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(passenger)
+	WriteJSON(w, http.StatusOK, passenger)
 }
 
 // CreatePassenger handles requests for creating passenger.
@@ -337,9 +314,7 @@ func CreatePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Passenger created")
+	WriteJSON(w, http.StatusCreated, "Passenger created")
 }
 
 // UpdatePassenger handles requests for updating passenger.
@@ -379,9 +354,7 @@ func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Passenger updated")
+	WriteJSON(w, http.StatusOK, "Passenger updated")
 }
 
 // DeletePassenger handles requests for deleting passenger.
@@ -406,13 +379,18 @@ func DeletePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode("Passenger deleted")
+	WriteJSON(w, http.StatusOK, "Passenger deleted")
 }
 
 // generateID generates unique ID.
 func generateID() string {
 	id := uuid.New()
 	return id.String()
+}
+
+// WriteJSON writes response to JSON
+func WriteJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(v)
 }
