@@ -1,10 +1,10 @@
-package api
+package main
 
 import (
 	"encoding/json"
 	"flightticketservice/pkg/booking"
 	"flightticketservice/pkg/flights"
-	"flightticketservice/pkg/passenger"
+	p "flightticketservice/pkg/passenger"
 	"net/http"
 	"time"
 
@@ -229,7 +229,7 @@ func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
 // GetPassengers handles requests for getting list of passengers.
 func GetPassengers(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetPassengers called")
-	PassengerSer := passenger.NewPassengerService()
+	PassengerSer := p.NewPassengerService()
 	passengers, err := PassengerSer.GetPassengers()
 
 	if err != nil {
@@ -248,7 +248,7 @@ func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	passengerID := vars["id"]
 
-	PassengerSer := passenger.NewPassengerService()
+	PassengerSer := p.NewPassengerService()
 	passenger, err := PassengerSer.GetPassengerByID(passengerID)
 
 	if err != nil {
@@ -260,41 +260,27 @@ func GetPassengerByID(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, passenger)
 }
 
-// CreatePassenger handles requests for creating passenger.
-func CreatePassenger(w http.ResponseWriter, r *http.Request) {
+// HandleCreatePassenger handles requests for creating passenger.
+func (s *APIServer) HandleCreatePassenger(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CreatePassenger called")
 
-	queryParams := r.URL.Query()
-	utils.InfoLog.Println(queryParams)
-	userName := queryParams.Get("name")
-	userSurname := queryParams.Get("surname")
-	email := queryParams.Get("email")
-	password := queryParams.Get("password")
-
-	passengerID := generateID()
-
-	if userName == "" || userSurname == "" || email == "" || password == "" {
-		utils.ErrorLog.Printf("Missing required parameters in CreatePassenger query")
-		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+	createPassengerReq := new(p.CreatePassengerReq)
+	if err := json.NewDecoder(r.Body).Decode(createPassengerReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode passenger data")
 		return
 	}
 
-	newPassenger := passenger.Passenger{
-		ID:        passengerID,
-		FirstName: userName,
-		LastName:  userSurname,
-		Email:     email,
-		Password:  password,
-		CreatedAt: time.Now(),
-	}
-	utils.InfoLog.Println("new ticked: ", newPassenger, " created")
+	newPassenger := p.NewPassenger(
+		createPassengerReq.FirstName,
+		createPassengerReq.LastName,
+		createPassengerReq.Email,
+		createPassengerReq.Password,
+	)
 
-	passengerSer := passenger.NewPassengerService()
-	err := passengerSer.CreatePassenger(&newPassenger)
+	utils.InfoLog.Println("new passenger: ", newPassenger, " created")
 
-	if err != nil {
+	if err := s.store.CreatePassenger(newPassenger); err != nil {
 		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -314,7 +300,7 @@ func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
 	email := queryParams.Get("email")
 	password := queryParams.Get("password")
 
-	newPassenger := passenger.Passenger{
+	newPassenger := p.Passenger{
 		ID:        generateID(),
 		FirstName: name,
 		LastName:  surname,
@@ -329,7 +315,7 @@ func UpdatePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passengerSer := passenger.NewPassengerService()
+	passengerSer := p.NewPassengerService()
 	err := passengerSer.UpdatePassenger(passengerID, &newPassenger)
 
 	if err != nil {
@@ -354,7 +340,7 @@ func DeletePassenger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passengerSer := passenger.NewPassengerService()
+	passengerSer := p.NewPassengerService()
 	err := passengerSer.DeletePassenger(passengerID)
 
 	if err != nil {

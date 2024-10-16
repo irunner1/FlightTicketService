@@ -4,9 +4,14 @@ import (
 	"database/sql"
 	"flightticketservice/pkg/passenger"
 	"flightticketservice/utils"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
+
+type Storage interface {
+	CreatePassenger(*passenger.Passenger) error
+}
 
 // PostgresStore stores db pointer
 type PostgresStore struct {
@@ -32,25 +37,48 @@ func NewPostgresStore() (*PostgresStore, error) {
 	}, nil
 }
 
+// Init initializes db with data
 func (s *PostgresStore) Init() error {
 	return s.CreatePassengerTable()
 }
 
+// CreatePassengerTable creates passenger table in db
 func (s *PostgresStore) CreatePassengerTable() error {
 	query := `create table if not exists passengers (
 		ID serial primary key,
-		FirstName varchar(20),
-		LastName  varchar(20),    
-		Email     varchar(20),    
-		Password  varchar(20),    
-		CreatedAt timestamp,
+		first_name varchar(30),
+		last_name  varchar(30),    
+		email     varchar(30),    
+		password  varchar(30),    
+		created_at timestamp
 	)`
 
 	_, err := s.db.Exec(query)
 	return err
 }
 
-func (s *PostgresStore) CreatePassenger(*passenger.Passenger) error { return nil }
+// CreatePassenger creates passenger in table
+func (s *PostgresStore) CreatePassenger(pass *passenger.Passenger) error {
+	query := `insert into passengers
+	(first_name, last_name, email, password, created_at) 
+	values ($1, $2, $3, $4, $5)`
+
+	resp, err := s.db.Query(
+		query,
+		pass.FirstName,
+		pass.LastName,
+		pass.Email,
+		pass.Password,
+		pass.CreatedAt,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", resp)
+	return nil
+}
 
 func (s *PostgresStore) UpdatePassenger(*passenger.Passenger) error { return nil }
 

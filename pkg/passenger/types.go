@@ -13,21 +13,20 @@ type Passenger struct {
 }
 
 // CreatePassengerRequest collects info about passenger for request.
-type CreatePassengerRequest struct {
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"created_at"`
+type CreatePassengerReq struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"-"`
 }
 
-// CreateNewPassenger creates new passenger by passed params
-func CreateNewPassenger(firstName, lastName, email, password string) *Passenger {
+// NewPassenger creates new passenger by passed params
+func NewPassenger(firstName, lastName, email, password string) *Passenger {
 	return &Passenger{
-		ID:        "FL001",
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
 		Password:  password,
+		CreatedAt: time.Now().UTC(),
 	}
 }
