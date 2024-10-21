@@ -3,7 +3,6 @@ package passenger
 import (
 	"database/sql"
 	"errors"
-	"flightticketservice/utils"
 	"fmt"
 
 	_ "github.com/lib/pq"
@@ -23,32 +22,18 @@ type PostgresStore struct {
 	db *sql.DB
 }
 
-// NewPostgresStore creates connection woth postgres
-func NewPostgresStore(user, password string) (*PostgresStore, error) {
-	connStr := fmt.Sprintf("user=%s dbname=postgres password=%s sslmode=disable", user, password)
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		utils.ErrorLog.Fatal(err)
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		utils.ErrorLog.Fatal(err)
-		return nil, err
-	}
-
-	return &PostgresStore{
-		db: db,
-	}, nil
+// NewPostgresStore initializes a new PostgresStore with a shared database connection.
+func NewPostgresStore(db *sql.DB) *PostgresStore {
+	return &PostgresStore{db: db}
 }
 
 // Init initializes db with data
-func (s *PostgresStore) Init() error {
-	return s.CreatePassengerTable()
+func (ps *PostgresStore) Init() error {
+	return ps.CreatePassengerTable()
 }
 
 // CreatePassengerTable creates passenger table in db
-func (s *PostgresStore) CreatePassengerTable() error {
+func (ps *PostgresStore) CreatePassengerTable() error {
 	query := `create table if not exists passengers (
 		ID serial primary key,
 		first_name varchar(30),
@@ -58,7 +43,7 @@ func (s *PostgresStore) CreatePassengerTable() error {
 		created_at timestamp
 	)`
 
-	_, err := s.db.Exec(query)
+	_, err := ps.db.Exec(query)
 	return err
 }
 
@@ -68,16 +53,16 @@ func (s *PostgresStore) CreatePassengerTable() error {
 // @Tags passengers
 // @Accept json
 // @Produce json
-// @Param passenger body Passenger true "Passenger data"
+// @Param passenger body CreatePassengerReq true "Passenger data"
 // @Success 200 "Passenger created"
 // @Failure 400 "Invalid passenger data"
 // @Router /api/v1/passengers/create [post]
-func (s *PostgresStore) CreatePassenger(pass *Passenger) error {
+func (ps *PostgresStore) CreatePassenger(pass *Passenger) error {
 	query := `insert into passengers
 	(first_name, last_name, email, password, created_at) 
 	values ($1, $2, $3, $4, $5)`
 
-	resp, err := s.db.Query(
+	resp, err := ps.db.Query(
 		query,
 		pass.FirstName,
 		pass.LastName,
@@ -107,15 +92,14 @@ func (s *PostgresStore) CreatePassenger(pass *Passenger) error {
 // @Success 200 "Passenger updated"
 // @Failure 404 "Passenger not found"
 // @Router /api/v1/passengers/{id}/update [post]
-func (s *PostgresStore) UpdatePassenger(id string, newPassenger *Passenger) error {
-
+func (ps *PostgresStore) UpdatePassenger(id string, newPassenger *Passenger) error {
 	if newPassenger == nil {
 		return errors.New("update request is nil")
 	}
 
 	query := "UPDATE passengers SET first_name = $1, last_name = $2, email = $3 WHERE id = $4"
 
-	_, err := s.db.Query(
+	_, err := ps.db.Query(
 		query,
 		newPassenger.FirstName,
 		newPassenger.LastName,
@@ -139,8 +123,8 @@ func (s *PostgresStore) UpdatePassenger(id string, newPassenger *Passenger) erro
 // @Success 200 "Passenger deleted"
 // @Failure 404 "Passenger not found"
 // @Router /api/v1/passengers/{id}/delete [delete]
-func (s *PostgresStore) DeletePassenger(id string) error {
-	_, err := s.db.Query("delete from account where id = $1", id)
+func (ps *PostgresStore) DeletePassenger(id string) error {
+	_, err := ps.db.Query("delete from account where id = $1", id)
 	return err
 }
 
@@ -154,8 +138,8 @@ func (s *PostgresStore) DeletePassenger(id string) error {
 // @Success 200 {object} Passenger
 // @Failure 404 "Missing required parameters"
 // @Router /api/v1/passengers/{id} [get]
-func (s *PostgresStore) GetPassengerByID(id string) (*Passenger, error) {
-	rows, err := s.db.Query("select * from passengers where id = $1", id)
+func (ps *PostgresStore) GetPassengerByID(id string) (*Passenger, error) {
+	rows, err := ps.db.Query("select * from passengers where id = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +159,8 @@ func (s *PostgresStore) GetPassengerByID(id string) (*Passenger, error) {
 // @Produce  json
 // @Success 200 {array} Passenger
 // @Router /api/v1/passengers [get]
-func (s *PostgresStore) GetPassengers() ([]*Passenger, error) {
-	rows, err := s.db.Query("select * from passengers")
+func (ps *PostgresStore) GetPassengers() ([]*Passenger, error) {
+	rows, err := ps.db.Query("select * from passengers")
 	if err != nil {
 		return nil, err
 	}

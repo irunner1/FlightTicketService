@@ -5,7 +5,11 @@ import (
 
 	"github.com/joho/godotenv"
 
-	db "flightticketservice/pkg/passenger"
+	"flightticketservice/pkg/booking"
+	db "flightticketservice/pkg/database"
+	"flightticketservice/pkg/flights"
+	"flightticketservice/pkg/passenger"
+
 	"flightticketservice/utils"
 
 	_ "flightticketservice/docs"
@@ -23,13 +27,24 @@ func main() {
 		utils.InfoLog.Print("No .env file found")
 	}
 
-	store, err := db.NewPostgresStore(os.Getenv("DB_USER"), os.Getenv("DB_PASS"))
+	store, err := db.ConnectDB(os.Getenv("DB_USER"), os.Getenv("DB_PASS"), "postgres")
 
 	if err != nil {
 		utils.ErrorLog.Fatal(err)
 	}
 
-	if err := store.Init(); err != nil {
+	passengerStore := passenger.NewPostgresStore(store)
+	if err := passengerStore.Init(); err != nil {
+		utils.ErrorLog.Fatal(err)
+	}
+
+	flightsStore := flights.NewFlightsStore(store)
+	if err := flightsStore.Init(); err != nil {
+		utils.ErrorLog.Fatal(err)
+	}
+
+	ticketStore := booking.NewBookingStore(store)
+	if err := ticketStore.Init(); err != nil {
 		utils.ErrorLog.Fatal(err)
 	}
 
@@ -37,6 +52,6 @@ func main() {
 	port := os.Getenv("PORT")
 	utils.InfoLog.Printf("loaded env {'host': %s, 'port': %s}", host, port)
 
-	server := NewAPIServer(host, port, store)
+	server := NewAPIServer(host, port, passengerStore, flightsStore, ticketStore)
 	server.Run()
 }

@@ -35,6 +35,40 @@
                 }
             }
         },
+        "/api/v1/flights/create": {
+            "post": {
+                "description": "Creates new flight profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "flights"
+                ],
+                "summary": "Creates flight",
+                "parameters": [
+                    {
+                        "description": "Flight data",
+                        "name": "flight",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/flights.CreateFlightReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Flight created"
+                    },
+                    "400": {
+                        "description": "Invalid flight data"
+                    }
+                }
+            }
+        },
         "/api/v1/flights/search": {
             "get": {
                 "description": "Retrieves a list of flights filtered by the provided search parameters.",
@@ -125,6 +159,98 @@
                 }
             }
         },
+        "/api/v1/flights/{id}/delete": {
+            "delete": {
+                "description": "Delete a flight by unique identifier",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "flights"
+                ],
+                "summary": "Delete flight",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the flight",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Passenger deleted"
+                    },
+                    "404": {
+                        "description": "Passenger not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/flights/{id}/update": {
+            "post": {
+                "description": "Update an existing flight's details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "flights"
+                ],
+                "summary": "Update flight data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the flight",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User surname",
+                        "name": "surname",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User password",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Flight updated"
+                    },
+                    "404": {
+                        "description": "Flight not found"
+                    }
+                }
+            }
+        },
         "/api/v1/passengers": {
             "get": {
                 "description": "get passengers",
@@ -171,7 +297,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/passenger.Passenger"
+                            "$ref": "#/definitions/passenger.CreatePassengerReq"
                         }
                     }
                 ],
@@ -358,13 +484,47 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/booking.Ticket"
+                            "$ref": "#/definitions/booking.CreateTicketReq"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Ticket successfully booked"
+                    },
+                    "400": {
+                        "description": "Invalid ticket data"
+                    }
+                }
+            }
+        },
+        "/api/v1/tickets/create": {
+            "post": {
+                "description": "Creates new ticket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickets"
+                ],
+                "summary": "Creates ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket data",
+                        "name": "flight",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/booking.CreateTicketReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket created"
                     },
                     "400": {
                         "description": "Invalid ticket data"
@@ -403,6 +563,82 @@
                     },
                     "404": {
                         "description": "ticket not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/tickets/{id}/delete": {
+            "delete": {
+                "description": "Deletes a ticket using the ticket ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickets"
+                ],
+                "summary": "Delete a ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the ticket",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket successfully deleted"
+                    },
+                    "404": {
+                        "description": "Ticket not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/tickets/{id}/update": {
+            "post": {
+                "description": "Updates the details of a ticket using the ticket ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickets"
+                ],
+                "summary": "Update ticket details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the ticket",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated ticket data",
+                        "name": "ticket",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/booking.Ticket"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ticket successfully updated"
+                    },
+                    "400": {
+                        "description": "Invalid ticket data"
+                    },
+                    "404": {
+                        "description": "Ticket not found"
                     }
                 }
             }
@@ -483,6 +719,29 @@
         }
     },
     "definitions": {
+        "booking.CreateTicketReq": {
+            "type": "object",
+            "properties": {
+                "additional_info": {
+                    "type": "string"
+                },
+                "arrival_time": {
+                    "type": "string"
+                },
+                "departure_time": {
+                    "type": "string"
+                },
+                "flight_id": {
+                    "type": "string"
+                },
+                "passenger_id": {
+                    "type": "string"
+                },
+                "seat_number": {
+                    "type": "string"
+                }
+            }
+        },
         "booking.Ticket": {
             "type": "object",
             "properties": {
@@ -516,6 +775,29 @@
                 }
             }
         },
+        "flights.CreateFlightReq": {
+            "type": "object",
+            "properties": {
+                "airline": {
+                    "type": "string"
+                },
+                "arrival": {
+                    "type": "string"
+                },
+                "departure": {
+                    "type": "string"
+                },
+                "destination": {
+                    "type": "string"
+                },
+                "origin": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "flights.Flight": {
             "description": "Flight model for API response.",
             "type": "object",
@@ -540,6 +822,20 @@
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "passenger.CreatePassengerReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
                 }
             }
         },

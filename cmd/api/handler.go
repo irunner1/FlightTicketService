@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"flightticketservice/pkg/booking"
-	"flightticketservice/pkg/flights"
+	t "flightticketservice/pkg/booking"
+	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
 	"net/http"
 	"time"
@@ -14,11 +15,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// GetFlights handles requests for getting list of flights.
-func GetFlights(w http.ResponseWriter, r *http.Request) {
+// Flights
+
+// handleGetFlights handles requests for getting list of flights.
+func (s *APIServer) handleGetFlights(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetFlights called")
-	flightSer := flights.NewFlightService()
-	flights, err := flightSer.GetFlights()
+
+	flights, err := s.flights.GetFlights()
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving flights: %v", err)
@@ -29,8 +32,8 @@ func GetFlights(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, flights)
 }
 
-// GetFlightsByParams handles requests for getting list of flights by parameters.
-func GetFlightsByParams(w http.ResponseWriter, r *http.Request) {
+// handleGetFlightByParams handles requests for getting list of flights by parameters.
+func (s *APIServer) handleGetFlightByParams(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetFlightsByParams called")
 
 	query := r.URL.Query()
@@ -50,15 +53,14 @@ func GetFlightsByParams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchParams := flights.SearchParams{
+	searchParams := f.SearchParams{
 		Origin:      origin,
 		Destination: destination,
 		Departure:   departure,
 		Arrival:     arrival,
 	}
 
-	flightSer := flights.NewFlightService()
-	flights, err := flightSer.GetFlightsByParams(searchParams)
+	flights, err := s.flights.GetFlightsByParams(searchParams)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving flights: %v", err)
@@ -69,15 +71,15 @@ func GetFlightsByParams(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, flights)
 }
 
-// GetFlightInfo handles requests for getting flight info.
-func GetFlightInfo(w http.ResponseWriter, r *http.Request) {
+// handleGetFlightByID handles requests for getting flight info.
+func (s *APIServer) handleGetFlightByID(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetFlightInfo called")
 
 	vars := mux.Vars(r)
 	flightID := vars["id"]
 
-	flightSer := flights.NewFlightService()
-	flight, err := flightSer.GetFlightByID(flightID)
+	flight, err := s.flights.GetFlightByID(flightID)
+
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving flight: %v", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -87,8 +89,99 @@ func GetFlightInfo(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, flight)
 }
 
-// BookTicket handles requests for booking flight.
-func BookTicket(w http.ResponseWriter, r *http.Request) {
+// handleCreateFlight handles requests for creating flight.
+func (s *APIServer) handleCreateFlight(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("CreateFlight called")
+
+	createFlightReq := new(f.CreateFlightReq)
+	if err := json.NewDecoder(r.Body).Decode(createFlightReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode flight data")
+		return
+	}
+
+	newFlight := f.NewFlight(
+		createFlightReq.Airline,
+		createFlightReq.Origin,
+		createFlightReq.Destination,
+		createFlightReq.Departure,
+		createFlightReq.Arrival,
+		createFlightReq.Price,
+	)
+
+	utils.InfoLog.Println("new flight: ", newFlight, " created")
+
+	if err := s.flights.CreateFlight(newFlight); err != nil {
+		utils.ErrorLog.Printf("Error in CreateFlight: %v", err)
+		return
+	}
+
+	WriteJSON(w, http.StatusCreated, "Flight created")
+}
+
+// handleUpdateFlight handles requests for updating flight.
+func (s *APIServer) handleUpdateFlight(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("UpdateFlight called")
+
+	vars := mux.Vars(r)
+	passengerID := vars["id"]
+
+	if passengerID == "" {
+		utils.ErrorLog.Printf("Missing required parameters in UpdateFlight query")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	createFlightReq := new(f.CreateFlightReq)
+	if err := json.NewDecoder(r.Body).Decode(createFlightReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode flight data")
+		return
+	}
+
+	newFlight := f.NewFlight(
+		createFlightReq.Airline,
+		createFlightReq.Origin,
+		createFlightReq.Destination,
+		createFlightReq.Departure,
+		createFlightReq.Arrival,
+		createFlightReq.Price,
+	)
+
+	utils.InfoLog.Println("Flight: ", newFlight, " updated")
+
+	if err := s.flights.UpdateFlight(passengerID, newFlight); err != nil {
+		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, "Flight updated")
+}
+
+// handleDeleteFlight handles requests for deleting flight.
+func (s *APIServer) handleDeleteFlight(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("DeleteFlight called")
+
+	vars := mux.Vars(r)
+	flightID := vars["flightID"]
+
+	if flightID == "" {
+		utils.ErrorLog.Printf("flight id is empty")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	if err := s.flights.DeleteFlight(flightID); err != nil {
+		utils.ErrorLog.Printf("Error in DeleteFlight: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, "Flight deleted")
+}
+
+// Tickets
+
+// handleBookTicket handles requests for booking flight.
+func (s *APIServer) handleBookTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("BookTicket called")
 
 	queryParams := r.URL.Query()
@@ -119,8 +212,7 @@ func BookTicket(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.InfoLog.Println("new ticked: ", newTicket, " created")
 
-	bookingSer := booking.NewBookingService()
-	err := bookingSer.BookTicket(&newTicket)
+	err := s.tickets.BookTicket(&newTicket)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in BookTicket: %v", err)
@@ -131,19 +223,19 @@ func BookTicket(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, "Ticket booked")
 }
 
-// CheckInOnline handles requests for online registration.
-func CheckInOnline(w http.ResponseWriter, r *http.Request) {
+// handleCheckInOnline handles requests for online registration.
+func (s *APIServer) handleCheckInOnline(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CheckInOnline called")
 
 	WriteJSON(w, http.StatusOK, "")
 }
 
-// ChangeTicket handles requests for changing tickets.
-func ChangeTicket(w http.ResponseWriter, r *http.Request) {
+// handleChangeTicket handles requests for changing tickets.
+func (s *APIServer) handleChangeTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("ChangeTicket called")
 
 	vars := mux.Vars(r)
-	ticketID := vars["ticketID"]
+	ticketID := vars["id"]
 	flightID := r.URL.Query().Get("flightID")
 
 	queryParams := r.URL.Query()
@@ -155,8 +247,7 @@ func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookingSer := booking.NewBookingService()
-	err := bookingSer.ChangeFlight(ticketID, flightID)
+	err := s.tickets.ChangeFlight(ticketID, flightID)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in ChangeTicket: %v", err)
@@ -164,15 +255,15 @@ func ChangeTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	WriteJSON(w, http.StatusOK, "Flight id changed")
+	WriteJSON(w, http.StatusOK, "Ticket changed")
 }
 
-// CancelTicket handles requests for ticket cancellation.
-func CancelTicket(w http.ResponseWriter, r *http.Request) {
+// handleCancelTicket handles requests for ticket cancellation.
+func (s *APIServer) handleCancelTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("CancelTicket called")
 
 	vars := mux.Vars(r)
-	ticketID := vars["ticketID"]
+	ticketID := vars["id"]
 
 	if ticketID == "" {
 		utils.ErrorLog.Printf("ticket id is empty")
@@ -180,8 +271,7 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookingSer := booking.NewBookingService()
-	err := bookingSer.CancelTicket(ticketID)
+	err := s.tickets.CancelTicket(ticketID)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in CancelTicket: %v", err)
@@ -192,15 +282,14 @@ func CancelTicket(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, "Ticket Cancelled")
 }
 
-// GetTickets handles requests for getting list of tickets.
-func GetTickets(w http.ResponseWriter, r *http.Request) {
+// handleGetTickets handles requests for getting list of tickets.
+func (s *APIServer) handleGetTickets(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetTickets called")
 
-	ticketSer := booking.NewBookingService()
-	tickets, err := ticketSer.GetTickets()
+	tickets, err := s.tickets.GetTickets()
 
 	if err != nil {
-		utils.ErrorLog.Printf("Error receiving flights: %v", err)
+		utils.ErrorLog.Printf("Error receiving tickets: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -208,15 +297,14 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, tickets)
 }
 
-// GetTicketInfo handles requests for getting ticket info.
-func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
+// handleGetTicketByID handles requests for getting ticket info.
+func (s *APIServer) handleGetTicketByID(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("GetTicketInfo called")
 
 	vars := mux.Vars(r)
 	ticketID := vars["id"]
 
-	ticketSer := booking.NewBookingService()
-	tickets, err := ticketSer.GetTicketByID(ticketID)
+	tickets, err := s.tickets.GetTicketByID(ticketID)
 	if err != nil {
 		utils.ErrorLog.Printf("Error receiving tickets: %v", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -225,6 +313,98 @@ func GetTicketInfo(w http.ResponseWriter, r *http.Request) {
 
 	WriteJSON(w, http.StatusOK, tickets)
 }
+
+// handleUpdateTicket handles requests for updating ticket info
+func (s *APIServer) handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("UpdateTicket called")
+
+	vars := mux.Vars(r)
+	ticketID := vars["id"]
+
+	if ticketID == "" {
+		utils.ErrorLog.Printf("Missing required parameters in UpdateTicket query")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	createTicketReq := new(t.CreateTicketReq)
+	if err := json.NewDecoder(r.Body).Decode(createTicketReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode ticket data")
+		return
+	}
+
+	newTicket := t.CreateNewTicket(
+		createTicketReq.FlightID,
+		createTicketReq.PassengerID,
+		"created", // status
+		createTicketReq.SeatNumber,
+		createTicketReq.AdditionalInfo,
+		createTicketReq.DepartureTime,
+		createTicketReq.ArrivalTime,
+	)
+
+	utils.InfoLog.Println("Flight: ", newTicket, " updated")
+
+	if err := s.tickets.UpdateTicket(ticketID, newTicket); err != nil {
+		utils.ErrorLog.Printf("Error in UpdateTicket: %v", err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, "Flight updated")
+}
+
+// handleCreateTicket handles requests for updating ticket info
+func (s *APIServer) handleCreateTicket(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("CreateTicket called")
+
+	createTicketReq := new(t.CreateTicketReq)
+	if err := json.NewDecoder(r.Body).Decode(createTicketReq); err != nil {
+		utils.ErrorLog.Fatal("Cannot decode passenger data")
+		return
+	}
+
+	newTicket := t.CreateNewTicket(
+		createTicketReq.FlightID,
+		createTicketReq.PassengerID,
+		"created", // status
+		createTicketReq.SeatNumber,
+		createTicketReq.AdditionalInfo,
+		createTicketReq.DepartureTime,
+		createTicketReq.ArrivalTime,
+	)
+
+	utils.InfoLog.Println("Flight: ", newTicket, " updated")
+
+	if err := s.tickets.CreateTicket(newTicket); err != nil {
+		utils.ErrorLog.Printf("Error in CreateTicket: %v", err)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, "Ticket updated")
+}
+
+// handleUpdateTicket handles requests for deleting ticket info
+func (s *APIServer) handleDeleteTicket(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("DeleteTicket called")
+
+	vars := mux.Vars(r)
+	ticketID := vars["ticketID"]
+
+	if ticketID == "" {
+		utils.ErrorLog.Printf("flight id is empty")
+		http.Error(w, "Missing required parameters", http.StatusBadRequest)
+		return
+	}
+
+	if err := s.tickets.DeleteTicket(ticketID); err != nil {
+		utils.ErrorLog.Printf("Error in DeleteTicket: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	WriteJSON(w, http.StatusOK, "Ticket deleted")
+}
+
+// Passengers
 
 // handleGetPassengers handles requests for getting list of passengers.
 func (s *APIServer) handleGetPassengers(w http.ResponseWriter, r *http.Request) {
@@ -251,7 +431,7 @@ func (s *APIServer) handleGetPassengerByID(w http.ResponseWriter, r *http.Reques
 	passenger, err := s.store.GetPassengerByID(passengerID)
 
 	if err != nil {
-		utils.ErrorLog.Printf("Error receiving flight: %v", err)
+		utils.ErrorLog.Printf("Error receiving passenger: %v", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -314,7 +494,7 @@ func (s *APIServer) handleUpdatePassenger(w http.ResponseWriter, r *http.Request
 		createPassengerReq.Email,
 		createPassengerReq.Password,
 	)
-	utils.InfoLog.Println("new passenger: ", newPassenger, " created")
+	utils.InfoLog.Println("Passenger: ", newPassenger, " updated")
 
 	if err := s.store.UpdatePassenger(passengerID, newPassenger); err != nil {
 		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)

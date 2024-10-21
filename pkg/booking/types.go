@@ -15,24 +15,26 @@ type Ticket struct {
 	AdditionalInfo string    `json:"additional_info"`
 }
 
-// CreateTicketRequest collects info about ticket for request.
-type CreateTicketRequest struct {
-	FlightID       string `json:"flight_id"`
-	PassengerID    string `json:"passenger_id"`
-	AdditionalInfo string `json:"additional_info"`
+// CreateTicketReq collects info about ticket for request.
+type CreateTicketReq struct {
+	FlightID       string    `json:"flight_id"`
+	PassengerID    string    `json:"passenger_id"`
+	DepartureTime  time.Time `json:"departure_time"`
+	ArrivalTime    time.Time `json:"arrival_time"`
+	SeatNumber     string    `json:"seat_number"`
+	AdditionalInfo string    `json:"additional_info"`
 }
 
 // CreateNewTicket creates new ticket by passed params
-func CreateNewTicket(flightID, passengerID, additionalInfo string) *Ticket {
+func CreateNewTicket(flightID, passengerID, status, seat, additionalInfo string, departureTime, arrivalTime time.Time) *Ticket {
 	return &Ticket{
-		ID:             "ticket1",
 		FlightID:       flightID,
 		PassengerID:    passengerID,
 		BookingTime:    time.Now().UTC(),
-		DepartureTime:  time.Now().Add(24 * time.Hour),
-		ArrivalTime:    time.Now().Add(30 * time.Hour),
-		Status:         "booked",
-		SeatNumber:     "12A",
+		DepartureTime:  departureTime,
+		ArrivalTime:    arrivalTime,
+		Status:         status,
+		SeatNumber:     seat,
 		AdditionalInfo: additionalInfo,
 	}
 }
