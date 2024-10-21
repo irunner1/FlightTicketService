@@ -23,7 +23,7 @@ type SearchParams struct {
 }
 
 // CreateFlightRequest collects info about flight for request.
-type CreateFlightRequest struct {
+type CreateFlightReq struct {
 	Airline     string    `json:"airline"`
 	Origin      string    `json:"origin"`
 	Destination string    `json:"destination"`
