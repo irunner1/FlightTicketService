@@ -53,7 +53,7 @@ func (ps *PostgresStore) CreatePassengerTable() error {
 // @Tags passengers
 // @Accept json
 // @Produce json
-// @Param passenger body Passenger true "Passenger data"
+// @Param passenger body CreatePassengerReq true "Passenger data"
 // @Success 200 "Passenger created"
 // @Failure 400 "Invalid passenger data"
 // @Router /api/v1/passengers/create [post]

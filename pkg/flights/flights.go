@@ -53,10 +53,10 @@ func (fs *FlightsStore) CreateFlightsTable() error {
 // @Tags flights
 // @Accept json
 // @Produce json
-// @Param flight body Flight true "Flight data"
+// @Param flight body CreateFlightReq true "Flight data"
 // @Success 200 "Flight created"
 // @Failure 400 "Invalid flight data"
-// @Router /api/v1/fligts/create [post]
+// @Router /api/v1/flights/create [post]
 func (fs *FlightsStore) CreateFlight(fl *Flight) error {
 	query := `insert into flights
 	(airline, origin, destination, departure, arrival, price)
@@ -64,7 +64,6 @@ func (fs *FlightsStore) CreateFlight(fl *Flight) error {
 
 	resp, err := fs.db.Query(
 		query,
-		fl.ID,
 		fl.Airline,
 		fl.Origin,
 		fl.Destination,
@@ -81,19 +80,19 @@ func (fs *FlightsStore) CreateFlight(fl *Flight) error {
 }
 
 // UpdateFlight updates pasanger by id
-// @Summary Update passenger data
-// @Description Update an existing passenger's details.
-// @Tags passengers
+// @Summary Update flight data
+// @Description Update an existing flight's details.
+// @Tags flights
 // @Accept json
 // @Produce json
-// @Param id path string true "Unique identifier of the passenger"
+// @Param id path string true "Unique identifier of the flight"
 // @Param name query string true "User name"
 // @Param surname query string true "User surname"
 // @Param email query string true "User email"
 // @Param password query string true "User password"
-// @Success 200 "Passenger updated"
-// @Failure 404 "Passenger not found"
-// @Router /api/v1/passengers/{id}/update [post]
+// @Success 200 "Flight updated"
+// @Failure 404 "Flight not found"
+// @Router /api/v1/flights/{id}/update [post]
 func (fs *FlightsStore) UpdateFlight(id string, newFlight *Flight) error {
 
 	if newFlight == nil {
@@ -124,7 +123,7 @@ func (fs *FlightsStore) UpdateFlight(id string, newFlight *Flight) error {
 // DeleteFlight deletes flight from db
 // @Summary Delete flight
 // @Description Delete a flight by unique identifier
-// @Tags flight
+// @Tags flights
 // @Accept json
 // @Produce json
 // @Param id path string true "Unique identifier of the flight"

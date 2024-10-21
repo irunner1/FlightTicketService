@@ -1,6 +1,7 @@
 package main
 
 import (
+	t "flightticketservice/pkg/booking"
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
 	"flightticketservice/utils"
@@ -18,15 +19,23 @@ type APIServer struct {
 	listenPort string
 	store      p.Storage
 	flights    f.FlightService
+	tickets    t.BookingService
 }
 
 // NewAPIServer creates API server
-func NewAPIServer(listenAddr, listenPort string, store p.Storage, flightsStore f.FlightService) *APIServer {
+func NewAPIServer(
+	listenAddr,
+	listenPort string,
+	store p.Storage,
+	flightsStore f.FlightService,
+	ticketStore t.BookingService,
+) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		listenPort: listenPort,
 		store:      store,
 		flights:    flightsStore,
+		tickets:    ticketStore,
 	}
 }
 
@@ -49,13 +58,15 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/passengers/{id}/update", s.handleUpdatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/delete ", s.handleDeletePassenger).Methods("DELETE")
 
-	r.HandleFunc("/api/v1/tickets", GetTickets).Methods("GET")
-	r.HandleFunc("/api/v1/tickets/{id}", GetTicketInfo).Methods("GET")
+	r.HandleFunc("/api/v1/tickets", s.handleGetTickets).Methods("GET")
+	r.HandleFunc("/api/v1/tickets/{id}", s.handleGetTicketByID).Methods("GET")
+	r.HandleFunc("/api/v1/tickets/book", s.handleBookTicket).Methods("POST")
+	r.HandleFunc("/api/v1/checkin", s.handleCheckInOnline).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{id}/change", s.handleChangeTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{id}/cancel", s.handleCancelTicket).Methods("POST")
 
-	r.HandleFunc("/api/v1/tickets/book", BookTicket).Methods("POST")
-	r.HandleFunc("/api/v1/checkin", CheckInOnline).Methods("POST")
-	r.HandleFunc("/api/v1/tickets/{ticketID}/change", ChangeTicket).Methods("POST")
-	r.HandleFunc("/api/v1/tickets/{ticketID}/cancel", CancelTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{id}/update", s.handleUpdateTicket).Methods("POST")
+	r.HandleFunc("/api/v1/tickets/{id}/delete", s.handleDeleteTicket).Methods("DELETE")
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 

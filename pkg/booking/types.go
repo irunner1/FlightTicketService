@@ -15,8 +15,8 @@ type Ticket struct {
 	AdditionalInfo string    `json:"additional_info"`
 }
 
-// CreateTicketRequest collects info about ticket for request.
-type CreateTicketRequest struct {
+// CreateTicketReq collects info about ticket for request.
+type CreateTicketReq struct {
 	FlightID       string `json:"flight_id"`
 	PassengerID    string `json:"passenger_id"`
 	AdditionalInfo string `json:"additional_info"`
@@ -25,7 +25,6 @@ type CreateTicketRequest struct {
 // CreateNewTicket creates new ticket by passed params
 func CreateNewTicket(flightID, passengerID, additionalInfo string) *Ticket {
 	return &Ticket{
-		ID:             "ticket1",
 		FlightID:       flightID,
 		PassengerID:    passengerID,
 		BookingTime:    time.Now().UTC(),

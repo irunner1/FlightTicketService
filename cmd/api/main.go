@@ -5,6 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"flightticketservice/pkg/booking"
 	db "flightticketservice/pkg/database"
 	"flightticketservice/pkg/flights"
 	"flightticketservice/pkg/passenger"
@@ -42,10 +43,15 @@ func main() {
 		utils.ErrorLog.Fatal(err)
 	}
 
+	ticketStore := booking.NewBookingStore(store)
+	if err := ticketStore.Init(); err != nil {
+		utils.ErrorLog.Fatal(err)
+	}
+
 	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
 	utils.InfoLog.Printf("loaded env {'host': %s, 'port': %s}", host, port)
 
-	server := NewAPIServer(host, port, passengerStore, flightsStore)
+	server := NewAPIServer(host, port, passengerStore, flightsStore, ticketStore)
 	server.Run()
 }

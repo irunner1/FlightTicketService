@@ -22,7 +22,7 @@ type SearchParams struct {
 	Arrival     time.Time
 }
 
-// CreateFlightRequest collects info about flight for request.
+// CreateFlightReq collects info about flight for request.
 type CreateFlightReq struct {
 	Airline     string    `json:"airline"`
 	Origin      string    `json:"origin"`
