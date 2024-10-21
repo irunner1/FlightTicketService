@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  booking.CreateTicketReq:
+    properties:
+      additional_info:
+        type: string
+      flight_id:
+        type: string
+      passenger_id:
+        type: string
+    type: object
   booking.Ticket:
     properties:
       additional_info:
@@ -22,6 +31,21 @@ definitions:
         description: '"booked", "cancelled", "confirmed"'
         type: string
     type: object
+  flights.CreateFlightReq:
+    properties:
+      airline:
+        type: string
+      arrival:
+        type: string
+      departure:
+        type: string
+      destination:
+        type: string
+      origin:
+        type: string
+      price:
+        type: number
+    type: object
   flights.Flight:
     description: Flight model for API response.
     properties:
@@ -39,6 +63,15 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  passenger.CreatePassengerReq:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
     type: object
   passenger.Passenger:
     properties:
@@ -127,6 +160,90 @@ paths:
         "404":
           description: Flight not found
       summary: Get flight by ID
+      tags:
+      - flights
+  /api/v1/flights/{id}/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a flight by unique identifier
+      parameters:
+      - description: Unique identifier of the flight
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Passenger deleted
+        "404":
+          description: Passenger not found
+      summary: Delete flight
+      tags:
+      - flights
+  /api/v1/flights/{id}/update:
+    post:
+      consumes:
+      - application/json
+      description: Update an existing flight's details.
+      parameters:
+      - description: Unique identifier of the flight
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: User surname
+        in: query
+        name: surname
+        required: true
+        type: string
+      - description: User email
+        in: query
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: query
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Flight updated
+        "404":
+          description: Flight not found
+      summary: Update flight data
+      tags:
+      - flights
+  /api/v1/flights/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates new flight profile
+      parameters:
+      - description: Flight data
+        in: body
+        name: flight
+        required: true
+        schema:
+          $ref: '#/definitions/flights.CreateFlightReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Flight created
+        "400":
+          description: Invalid flight data
+      summary: Creates flight
       tags:
       - flights
   /api/v1/flights/search:
@@ -278,7 +395,7 @@ paths:
         name: passenger
         required: true
         schema:
-          $ref: '#/definitions/passenger.Passenger'
+          $ref: '#/definitions/passenger.CreatePassengerReq'
       produces:
       - application/json
       responses:
@@ -329,6 +446,56 @@ paths:
       summary: Get ticket by ID
       tags:
       - tickets
+  /api/v1/tickets/{id}/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a ticket using the ticket ID.
+      parameters:
+      - description: Unique identifier of the ticket
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket successfully deleted
+        "404":
+          description: Ticket not found
+      summary: Delete a ticket
+      tags:
+      - tickets
+  /api/v1/tickets/{id}/update:
+    post:
+      consumes:
+      - application/json
+      description: Updates the details of a ticket using the ticket ID.
+      parameters:
+      - description: Unique identifier of the ticket
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/booking.Ticket'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket successfully updated
+        "400":
+          description: Invalid ticket data
+        "404":
+          description: Ticket not found
+      summary: Update ticket details
+      tags:
+      - tickets
   /api/v1/tickets/{ticketID}/cancel:
     post:
       consumes:
@@ -361,7 +528,7 @@ paths:
         name: ticket
         required: true
         schema:
-          $ref: '#/definitions/booking.Ticket'
+          $ref: '#/definitions/booking.CreateTicketReq'
       produces:
       - application/json
       responses:
@@ -372,4 +539,26 @@ paths:
       summary: Book a new ticket
       tags:
       - booking
+  /api/v1/tickets/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates new ticket
+      parameters:
+      - description: Ticket data
+        in: body
+        name: flight
+        required: true
+        schema:
+          $ref: '#/definitions/booking.CreateTicketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ticket created
+        "400":
+          description: Invalid ticket data
+      summary: Creates ticket
+      tags:
+      - tickets
 swagger: "2.0"
