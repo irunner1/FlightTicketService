@@ -63,9 +63,17 @@ func (bs *BookingStore) CreateFlightsTable() error {
 // @Failure 400 "Invalid ticket data"
 // @Router /api/v1/tickets/create [post]
 func (bs *BookingStore) CreateTicket(ticket *Ticket) error {
-	query := `insert into flights
-	(airline, origin, destination, departure, arrival, price)
-	values ($1, $2, $3, $4, $5, $6)`
+	query := `insert into booking_flights (
+	flight_id,
+	passenger_id,
+	booking_time,
+	departure_time,
+	arrival_time,
+	status,
+	seat_number,
+	additional_info
+	)
+	values ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	resp, err := bs.db.Query(
 		query,

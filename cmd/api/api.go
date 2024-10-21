@@ -65,6 +65,7 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/tickets/{id}/change", s.handleChangeTicket).Methods("POST")
 	r.HandleFunc("/api/v1/tickets/{id}/cancel", s.handleCancelTicket).Methods("POST")
 
+	r.HandleFunc("/api/v1/tickets/create", s.handleCreateTicket).Methods("POST")
 	r.HandleFunc("/api/v1/tickets/{id}/update", s.handleUpdateTicket).Methods("POST")
 	r.HandleFunc("/api/v1/tickets/{id}/delete", s.handleDeleteTicket).Methods("DELETE")
 

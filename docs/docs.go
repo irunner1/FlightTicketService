@@ -731,10 +731,19 @@ const docTemplate = `{
                 "additional_info": {
                     "type": "string"
                 },
+                "arrival_time": {
+                    "type": "string"
+                },
+                "departure_time": {
+                    "type": "string"
+                },
                 "flight_id": {
                     "type": "string"
                 },
                 "passenger_id": {
+                    "type": "string"
+                },
+                "seat_number": {
                     "type": "string"
                 }
             }

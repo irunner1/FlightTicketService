@@ -336,7 +336,11 @@ func (s *APIServer) handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 	newTicket := t.CreateNewTicket(
 		createTicketReq.FlightID,
 		createTicketReq.PassengerID,
+		"created", // status
+		createTicketReq.SeatNumber,
 		createTicketReq.AdditionalInfo,
+		createTicketReq.DepartureTime,
+		createTicketReq.ArrivalTime,
 	)
 
 	utils.InfoLog.Println("Flight: ", newTicket, " updated")
@@ -362,7 +366,11 @@ func (s *APIServer) handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 	newTicket := t.CreateNewTicket(
 		createTicketReq.FlightID,
 		createTicketReq.PassengerID,
+		"created", // status
+		createTicketReq.SeatNumber,
 		createTicketReq.AdditionalInfo,
+		createTicketReq.DepartureTime,
+		createTicketReq.ArrivalTime,
 	)
 
 	utils.InfoLog.Println("Flight: ", newTicket, " updated")
