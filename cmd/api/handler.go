@@ -161,7 +161,7 @@ func (s *APIServer) handleDeleteFlight(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("DeleteFlight called")
 
 	vars := mux.Vars(r)
-	flightID := vars["flightID"]
+	flightID := vars["id"]
 
 	if flightID == "" {
 		utils.ErrorLog.Printf("flight id is empty")
@@ -388,7 +388,7 @@ func (s *APIServer) handleDeleteTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("DeleteTicket called")
 
 	vars := mux.Vars(r)
-	ticketID := vars["ticketID"]
+	ticketID := vars["id"]
 
 	if ticketID == "" {
 		utils.ErrorLog.Printf("flight id is empty")
@@ -509,7 +509,7 @@ func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request
 	utils.InfoLog.Println("DeletePassenger called")
 
 	vars := mux.Vars(r)
-	passengerID := vars["passengerID"]
+	passengerID := vars["id"]
 
 	if passengerID == "" {
 		utils.ErrorLog.Printf("passenger id is empty")

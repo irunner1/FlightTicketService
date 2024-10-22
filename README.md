@@ -10,7 +10,6 @@ For now it`s just an api
 * Docker
 * JWT tocken for authorization (in progress)
 * Postgres for storage
-* RabbitMQ as message brocker (in progress)
 * OpenAPI for documenting API
 * Postman for checking API
 * UUID for ids
@@ -27,7 +26,7 @@ You could open /swagger/ page to check documentation and all API methods
 * Methods for adding data
 * Methods for deleting data
 * Authorization
-* Database
+* ~~Database~~
 * ~~logger~~
 
 ---
@@ -56,8 +55,9 @@ You need to prepare .env file with variables:
 ```cmd
 HOST=0.0.0.0
 PORT=80
-DB_USER=me
-DB_PASS=123123
+DB_USER=user
+DB_PASS=password
+DB_NAME=postgres
 
 ```
 
@@ -65,5 +65,6 @@ DB_PASS=123123
 * PORT - application port
 * DB_USER - database user name
 * DB_PASS - database user password
+* DB_NAME - database name
 
 ---
