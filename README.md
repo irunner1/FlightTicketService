@@ -58,6 +58,7 @@ PORT=80
 DB_USER=user
 DB_PASS=password
 DB_NAME=postgres
+JWT_SECRET=secret
 
 ```
 
@@ -66,5 +67,6 @@ DB_NAME=postgres
 * DB_USER - database user name
 * DB_PASS - database user password
 * DB_NAME - database name
+* JWT_SECRET - secret for JWT
 
 ---

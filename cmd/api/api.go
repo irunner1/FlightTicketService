@@ -5,10 +5,12 @@ import (
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
 	"flightticketservice/utils"
-	"log"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -52,7 +54,7 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/flights/{id}/update", s.handleUpdateFlight).Methods("POST")
 	r.HandleFunc("/api/v1/flights/{id}/delete", s.handleDeleteFlight).Methods("DELETE")
 
-	r.HandleFunc("/api/v1/passengers", s.handleGetPassengers).Methods("GET")
+	r.HandleFunc("/api/v1/passengers", withJWTAuth(s.handleGetPassengers)).Methods("GET")
 	r.HandleFunc("/api/v1/passengers/{id}", s.handleGetPassengerByID).Methods("GET")
 	r.HandleFunc("/api/v1/passengers/create", s.handleCreatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/update", s.handleUpdatePassenger).Methods("POST")
@@ -69,7 +71,7 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/tickets/{id}/update", s.handleUpdateTicket).Methods("POST")
 	r.HandleFunc("/api/v1/tickets/{id}/delete", s.handleDeleteTicket).Methods("DELETE")
 
-	log.Println("JSON API server running on port: ", s.listenAddr)
+	utils.InfoLog.Println("JSON API server running on port: ", s.listenAddr)
 
 	srv := &http.Server{
 		Handler:      r,
@@ -82,4 +84,32 @@ func (s *APIServer) Run() {
 	if err := srv.ListenAndServe(); err != nil {
 		utils.ErrorLog.Fatal("Server failed to start:", err)
 	}
+}
+
+func withJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.InfoLog.Println("calling JWT auth middleware")
+
+		tokenString := r.Header.Get("Authorization")
+
+		_, err := validateJWT(tokenString)
+		if err != nil {
+			WriteJSON(w, http.StatusForbidden, "Invalid Token")
+			return
+		}
+
+		handlerFunc(w, r)
+	}
+}
+
+func validateJWT(tokenString string) (*jwt.Token, error) {
+	secret := os.Getenv("JWT_SECRET")
+
+	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(secret), nil
+	})
 }

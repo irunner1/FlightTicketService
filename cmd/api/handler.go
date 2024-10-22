@@ -7,10 +7,12 @@ import (
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
 	"net/http"
+	"os"
 	"time"
 
 	"flightticketservice/utils"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -463,6 +465,12 @@ func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	tokenString, err := createJWT(newPassenger)
+	if err != nil {
+		return
+	}
+	utils.InfoLog.Println("JWT Token Created: ", tokenString)
+
 	WriteJSON(w, http.StatusCreated, "Passenger created")
 }
 
@@ -537,4 +545,16 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
+}
+
+func createJWT(passenger *p.Passenger) (string, error) {
+	claims := &jwt.MapClaims{
+		"expiresAt":   15000,
+		"passengerId": passenger.ID,
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
 }
