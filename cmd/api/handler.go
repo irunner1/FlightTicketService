@@ -6,6 +6,7 @@ import (
 	t "flightticketservice/pkg/booking"
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -151,7 +152,7 @@ func (s *APIServer) handleUpdateFlight(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("Flight: ", newFlight, " updated")
 
 	if err := s.flights.UpdateFlight(passengerID, newFlight); err != nil {
-		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		utils.ErrorLog.Printf("Error in UpdateFlight: %v", err)
 		return
 	}
 
@@ -467,6 +468,7 @@ func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request
 
 	tokenString, err := createJWT(newPassenger)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	utils.InfoLog.Println("JWT Token Created: ", tokenString)
@@ -549,8 +551,8 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 
 func createJWT(passenger *p.Passenger) (string, error) {
 	claims := &jwt.MapClaims{
-		"expiresAt":   15000,
-		"passengerId": passenger.ID,
+		"expiresAt":    15000,
+		"passengerNum": passenger.Number,
 	}
 
 	secret := os.Getenv("JWT_SECRET")

@@ -1,6 +1,10 @@
 package passenger
 
-import "time"
+import (
+	"time"
+
+	"golang.org/x/exp/rand"
+)
 
 // Passenger stores information about a user.
 type Passenger struct {
@@ -10,9 +14,10 @@ type Passenger struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+	Number    int64     `json:"number"`
 }
 
-// CreatePassengerRequest collects info about passenger for request.
+// CreatePassengerReq collects info about passenger for request.
 type CreatePassengerReq struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -28,5 +33,6 @@ func NewPassenger(firstName, lastName, email, password string) *Passenger {
 		Email:     email,
 		Password:  password,
 		CreatedAt: time.Now().UTC(),
+		Number:    int64(rand.Intn(1000000)),
 	}
 }

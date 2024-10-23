@@ -54,8 +54,8 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/flights/{id}/update", s.handleUpdateFlight).Methods("POST")
 	r.HandleFunc("/api/v1/flights/{id}/delete", s.handleDeleteFlight).Methods("DELETE")
 
-	r.HandleFunc("/api/v1/passengers", withJWTAuth(s.handleGetPassengers)).Methods("GET")
-	r.HandleFunc("/api/v1/passengers/{id}", s.handleGetPassengerByID).Methods("GET")
+	r.HandleFunc("/api/v1/passengers", s.handleGetPassengers).Methods("GET")
+	r.HandleFunc("/api/v1/passengers/{id}", withJWTAuth(s.handleGetPassengerByID, s.store)).Methods("GET")
 	r.HandleFunc("/api/v1/passengers/create", s.handleCreatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/update", s.handleUpdatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/delete ", s.handleDeletePassenger).Methods("DELETE")
@@ -86,15 +86,31 @@ func (s *APIServer) Run() {
 	}
 }
 
-func withJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc {
+func withJWTAuth(handlerFunc http.HandlerFunc, s p.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		utils.InfoLog.Println("calling JWT auth middleware")
 
 		tokenString := r.Header.Get("Authorization")
 
-		_, err := validateJWT(tokenString)
+		token, err := validateJWT(tokenString)
 		if err != nil {
-			WriteJSON(w, http.StatusForbidden, "Invalid Token")
+			permissionDenied(w)
+			return
+		}
+		if !token.Valid {
+			permissionDenied(w)
+			return
+		}
+		passengerID := mux.Vars(r)["id"]
+		passenger, err := s.GetPassengerByID(passengerID)
+		if err != nil {
+			permissionDenied(w)
+			return
+		}
+		claims := token.Claims.(jwt.MapClaims)
+
+		if passenger.Number != int64(claims["passengerNum"].(float64)) {
+			permissionDenied(w)
 			return
 		}
 
@@ -112,4 +128,13 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 
 		return []byte(secret), nil
 	})
+}
+
+func permissionDenied(w http.ResponseWriter) {
+	WriteJSON(w, http.StatusForbidden, APIError{Error: "permission denied"})
+}
+
+// APIError creates error
+type APIError struct {
+	Error string `json:"error"`
 }

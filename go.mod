@@ -23,6 +23,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	github.com/swaggo/swag v1.16.3 // indirect
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
