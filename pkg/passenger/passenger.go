@@ -13,6 +13,7 @@ type Storage interface {
 	CreatePassenger(*Passenger) error
 	GetPassengers() ([]*Passenger, error)
 	GetPassengerByID(passengerID string) (*Passenger, error)
+	GetPassengerByEmail(passengerID string) (*Passenger, error)
 	UpdatePassenger(passengerID string, passenger *Passenger) error
 	DeletePassenger(passengerID string) error
 }
@@ -37,9 +38,9 @@ func (ps *PostgresStore) CreatePassengerTable() error {
 	query := `create table if not exists passengers (
 		ID serial primary key,
 		first_name varchar(30),
-		last_name  varchar(30),    
-		email     varchar(30),    
-		password  varchar(30),    
+		last_name  varchar(30),
+		email     varchar(30),
+		password  varchar(100),
 		created_at timestamp
 	)`
 
@@ -140,6 +141,20 @@ func (ps *PostgresStore) DeletePassenger(id string) error {
 // @Router /api/v1/passengers/{id} [get]
 func (ps *PostgresStore) GetPassengerByID(id string) (*Passenger, error) {
 	rows, err := ps.db.Query("select * from passengers where id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		return scanPassenger(rows)
+	}
+
+	return nil, errors.New("passenger not found")
+}
+
+// GetPassengerByEmail returns passenger by email
+func (ps *PostgresStore) GetPassengerByEmail(email string) (*Passenger, error) {
+	rows, err := ps.db.Query("select * from passengers where email = $1", email)
 	if err != nil {
 		return nil, err
 	}

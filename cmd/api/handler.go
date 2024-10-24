@@ -7,10 +7,12 @@ import (
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
 	"net/http"
+	"os"
 	"time"
 
 	"flightticketservice/utils"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -149,7 +151,7 @@ func (s *APIServer) handleUpdateFlight(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("Flight: ", newFlight, " updated")
 
 	if err := s.flights.UpdateFlight(passengerID, newFlight); err != nil {
-		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		utils.ErrorLog.Printf("Error in UpdateFlight: %v", err)
 		return
 	}
 
@@ -161,7 +163,7 @@ func (s *APIServer) handleDeleteFlight(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("DeleteFlight called")
 
 	vars := mux.Vars(r)
-	flightID := vars["flightID"]
+	flightID := vars["id"]
 
 	if flightID == "" {
 		utils.ErrorLog.Printf("flight id is empty")
@@ -388,7 +390,7 @@ func (s *APIServer) handleDeleteTicket(w http.ResponseWriter, r *http.Request) {
 	utils.InfoLog.Println("DeleteTicket called")
 
 	vars := mux.Vars(r)
-	ticketID := vars["ticketID"]
+	ticketID := vars["id"]
 
 	if ticketID == "" {
 		utils.ErrorLog.Printf("flight id is empty")
@@ -449,12 +451,17 @@ func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	newPassenger := p.NewPassenger(
+	newPassenger, err := p.NewPassenger(
 		createPassengerReq.FirstName,
 		createPassengerReq.LastName,
 		createPassengerReq.Email,
 		createPassengerReq.Password,
 	)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		return
+	}
 
 	utils.InfoLog.Println("new passenger: ", newPassenger, " created")
 
@@ -488,16 +495,20 @@ func (s *APIServer) handleUpdatePassenger(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	newPassenger := p.NewPassenger(
+	newPassenger, err := p.NewPassenger(
 		createPassengerReq.FirstName,
 		createPassengerReq.LastName,
 		createPassengerReq.Email,
 		createPassengerReq.Password,
 	)
+	if err != nil {
+		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
+		return
+	}
 	utils.InfoLog.Println("Passenger: ", newPassenger, " updated")
 
 	if err := s.store.UpdatePassenger(passengerID, newPassenger); err != nil {
-		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
 		return
 	}
 
@@ -509,7 +520,7 @@ func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request
 	utils.InfoLog.Println("DeletePassenger called")
 
 	vars := mux.Vars(r)
-	passengerID := vars["passengerID"]
+	passengerID := vars["id"]
 
 	if passengerID == "" {
 		utils.ErrorLog.Printf("passenger id is empty")
@@ -537,4 +548,16 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
+}
+
+func createJWT(passenger *p.Passenger) (string, error) {
+	claims := &jwt.MapClaims{
+		"expiresAt":    15000,
+		"passengerNum": passenger.Number,
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
 }
