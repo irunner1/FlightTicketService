@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	t "flightticketservice/pkg/booking"
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
@@ -47,6 +48,8 @@ func (s *APIServer) Run() {
 
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
+	r.HandleFunc("/api/v1/login", s.handleLogin).Methods("POST")
+
 	r.HandleFunc("/api/v1/flights", s.handleGetFlights).Methods("GET")
 	r.HandleFunc("/api/v1/flights/search", s.handleGetFlightByParams).Methods("GET")
 	r.HandleFunc("/api/v1/flights/{id}", s.handleGetFlightByID).Methods("GET")
@@ -84,6 +87,37 @@ func (s *APIServer) Run() {
 	if err := srv.ListenAndServe(); err != nil {
 		utils.ErrorLog.Fatal("Server failed to start:", err)
 	}
+}
+
+func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) {
+	var req p.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return
+	}
+
+	pass, err := s.store.GetPassengerByEmail(req.Email)
+	if err != nil {
+		utils.ErrorLog.Println("not found")
+		return
+	}
+
+	if !pass.ValidPassword(req.Password) {
+		utils.ErrorLog.Println("not authenticated")
+		return
+	}
+
+	token, err := createJWT(pass)
+	fmt.Println(token)
+	if err != nil {
+		return
+	}
+
+	resp := p.LoginResponse{
+		Token: token,
+		Email: pass.Email,
+	}
+
+	WriteJSON(w, http.StatusOK, resp)
 }
 
 func withJWTAuth(handlerFunc http.HandlerFunc, s p.Storage) http.HandlerFunc {

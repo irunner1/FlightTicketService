@@ -6,7 +6,6 @@ import (
 	t "flightticketservice/pkg/booking"
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -452,12 +451,17 @@ func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	newPassenger := p.NewPassenger(
+	newPassenger, err := p.NewPassenger(
 		createPassengerReq.FirstName,
 		createPassengerReq.LastName,
 		createPassengerReq.Email,
 		createPassengerReq.Password,
 	)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		return
+	}
 
 	utils.InfoLog.Println("new passenger: ", newPassenger, " created")
 
@@ -465,13 +469,6 @@ func (s *APIServer) handleCreatePassenger(w http.ResponseWriter, r *http.Request
 		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
 		return
 	}
-
-	tokenString, err := createJWT(newPassenger)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	utils.InfoLog.Println("JWT Token Created: ", tokenString)
 
 	WriteJSON(w, http.StatusCreated, "Passenger created")
 }
@@ -498,16 +495,20 @@ func (s *APIServer) handleUpdatePassenger(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	newPassenger := p.NewPassenger(
+	newPassenger, err := p.NewPassenger(
 		createPassengerReq.FirstName,
 		createPassengerReq.LastName,
 		createPassengerReq.Email,
 		createPassengerReq.Password,
 	)
+	if err != nil {
+		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
+		return
+	}
 	utils.InfoLog.Println("Passenger: ", newPassenger, " updated")
 
 	if err := s.store.UpdatePassenger(passengerID, newPassenger); err != nil {
-		utils.ErrorLog.Printf("Error in CreatePassenger: %v", err)
+		utils.ErrorLog.Printf("Error in UpdatePassenger: %v", err)
 		return
 	}
 

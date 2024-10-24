@@ -54,7 +54,7 @@ You need to prepare .env file with variables:
 
 ```cmd
 HOST=0.0.0.0
-PORT=80
+PORT=3000
 DB_USER=user
 DB_PASS=password
 DB_NAME=postgres

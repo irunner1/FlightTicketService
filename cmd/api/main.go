@@ -55,3 +55,10 @@ func main() {
 	server := NewAPIServer(host, port, passengerStore, flightsStore, ticketStore)
 	server.Run()
 }
+
+// {
+//     "first_name": "Artem",
+//     "last_name": "Puchkov",
+//     "email": "asd@gmai.com",
+//     "password": "123123"
+// }
