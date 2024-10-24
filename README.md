@@ -6,13 +6,12 @@ For now it`s just an api
 
 ## Tech Stack
 
-* Go
+* Golang
 * Docker
-* JWT tocken for authorization (in progress)
+* JWT tocken for authorization
 * Postgres for storage
 * OpenAPI for documenting API
 * Postman for checking API
-* UUID for ids
 * OpenAPI Swagger
 
 ## Documentation
@@ -25,7 +24,7 @@ You could open /swagger/ page to check documentation and all API methods
 
 * Methods for adding data
 * Methods for deleting data
-* Authorization
+* ~~Authorization~~
 * ~~Database~~
 * ~~logger~~
 
