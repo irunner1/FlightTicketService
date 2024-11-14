@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  server:
+    container_name: flight-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      HOST: ${HOST}
+      PORT: ${PORT}
+      DB_HOST: postgres_db
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  db:
+    container_name: postgres_db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+volumes:
+  db_data:
+  server:
+networks:
+  internal:
+    driver: bridge
