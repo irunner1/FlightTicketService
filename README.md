@@ -21,6 +21,8 @@ You could open /swagger/ page to check documentation and all API methods
 
 ## TODO
 
+* Tests
+* Refactor db scheme
 * Methods for adding data
 * Methods for deleting data
 * ~~Authorization~~
@@ -32,7 +34,7 @@ You could open /swagger/ page to check documentation and all API methods
 ## Service startup
 
 ```cmd
-% make run
+    make run
 ```
 
 ## Example api`s
