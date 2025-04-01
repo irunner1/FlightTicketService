@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 )
 
 // BookingService interface inmplements methods for booking.
@@ -36,16 +35,16 @@ func (bs *BookingStore) Init() error {
 
 // CreateFlightsTable creates flights table in db
 func (bs *BookingStore) CreateFlightsTable() error {
-	query := `create table if not exists booking_flights (
-		ID serial primary key,
-		flight_id varchar(10),
-		passenger_id varchar(10),
-		booking_time timestamp,
-		departure_time timestamp,
-		arrival_time timestamp,
-		status varchar(30),
-		seat_number varchar(30),
-		additional_info varchar(100)
+	query := `CREATE TABLE IF NOT EXISTS booking_flights (
+		ID SERIAL PRIMARY KEY,
+		flight_id VARCHAR(10) NOT NULL,
+		passenger_id VARCHAR(10) NOT NULL,
+		booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		departure_time TIMESTAMP NOT NULL,
+		arrival_time TIMESTAMP NOT NULL,
+		status VARCHAR(30) NOT NULL CHECK (status IN ("booked", "cancelled", "confirmed")),
+		seat_number VARCHAR(30),
+		additional_info VARCHAR(100)
 	)`
 
 	_, err := bs.db.Exec(query)
@@ -113,29 +112,17 @@ func (bs *BookingStore) BookTicket(ticket *Ticket) error {
 		return errors.New("ticket ID cannot be empty")
 	}
 
-	rows, err := bs.db.Query("select * from booking_flights where id = $1", ticket.ID)
-
-	if rows != nil && err == nil {
-		return errors.New("ticket with this ID already exists")
-	}
-
-	ticket.Status = "booked"
-	ticket.BookingTime = time.Now()
-
-	query := `insert into booking_flights
-	(flight_id, passenger_id, booking_time, departure_time, arrival_time, status, seat_number, additional_info)
-	values ($1, $2, $3, $4, $5, $6, $7, $8)`
+	query := `UPDATE booking_flights
+	SET status = $3, passenger_id = $2, additional_info = $4
+	WHERE flight_id = $1;`
 
 	resp, err := bs.db.Query(
 		query,
 		ticket.FlightID,
 		ticket.PassengerID,
-		ticket.BookingTime,
-		ticket.DepartureTime,
-		ticket.ArrivalTime,
 		ticket.Status,
-		ticket.SeatNumber,
-		ticket.AdditionalInfo)
+		ticket.AdditionalInfo,
+	)
 
 	if err != nil {
 		return err

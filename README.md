@@ -31,6 +31,16 @@ You could open /swagger/ page to check documentation and all API methods
 
 ---
 
+## db schema
+
+booking_flights - table of booked flight. New record shows up when passenger books flight
+(passess passenger `passenger table` data for specific flight `flights table`)
+
+flights - table of flight in airports
+
+passengers - table of passengers, users of ticket service
+(user register in service)
+
 ## Service startup
 
 ```cmd
@@ -38,6 +48,8 @@ You could open /swagger/ page to check documentation and all API methods
 ```
 
 ## Example api`s
+
+You need to prepare .env file. Example showed in `.env.showcase`
 
 ## Docker
 
@@ -47,7 +59,6 @@ docker build -t flightticketservice .
 
 # Launch
 docker run -it -p 8080:8080 --env-file=.env flightticketservice
-
 ```
 
 ## Docker-compose
@@ -55,28 +66,4 @@ docker run -it -p 8080:8080 --env-file=.env flightticketservice
 ```bash
 # Build and launch postgres db and flight service
 docker-compose up --build
-
 ```
-
-You need to prepare .env file with variables:
-
-```cmd
-HOST=0.0.0.0
-PORT=3000
-DB_HOST=0.0.0.0
-DB_USER=user
-DB_PASS=password
-DB_NAME=postgres
-JWT_SECRET=secret
-
-```
-
-* HOST - application host
-* PORT - application port
-* DB_HOST - database host
-* DB_USER - database user name
-* DB_PASS - database user password
-* DB_NAME - database name
-* JWT_SECRET - secret for JWT
-
----
