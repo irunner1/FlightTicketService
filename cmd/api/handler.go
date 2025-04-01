@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flightticketservice/pkg/booking"
 	t "flightticketservice/pkg/booking"
 	f "flightticketservice/pkg/flights"
 	p "flightticketservice/pkg/passenger"
@@ -13,7 +12,6 @@ import (
 	"flightticketservice/utils"
 
 	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -188,33 +186,18 @@ func (s *APIServer) handleBookTicket(w http.ResponseWriter, r *http.Request) {
 
 	queryParams := r.URL.Query()
 	utils.InfoLog.Println(queryParams)
-	passengerID := queryParams.Get("passengerID")
-	seatNumber := queryParams.Get("seatNumber")
-	additionalInfo := queryParams.Get("additionalInfo")
+	ticketID := queryParams.Get("ticketID")
 	flightID := queryParams.Get("flightID")
+	passengerID := queryParams.Get("passengerID")
+	additionalInfo := queryParams.Get("additionalInfo")
 
-	ticketID := generateID()
-
-	if passengerID == "" || seatNumber == "" || flightID == "" {
+	if passengerID == "" || ticketID == "" || flightID == "" {
 		utils.ErrorLog.Printf("Missing required parameters in BookTicket query")
 		http.Error(w, "Missing required parameters", http.StatusBadRequest)
 		return
 	}
 
-	newTicket := booking.Ticket{
-		ID:             ticketID,
-		FlightID:       flightID,
-		PassengerID:    passengerID,
-		BookingTime:    time.Now(),
-		DepartureTime:  time.Now(),
-		ArrivalTime:    time.Now(),
-		Status:         "booked",
-		SeatNumber:     seatNumber,
-		AdditionalInfo: additionalInfo,
-	}
-	utils.InfoLog.Println("new ticked: ", newTicket, " created")
-
-	err := s.tickets.BookTicket(&newTicket)
+	err := s.tickets.BookTicket(ticketID, flightID, passengerID, additionalInfo)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in BookTicket: %v", err)
@@ -338,7 +321,7 @@ func (s *APIServer) handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 	newTicket := t.CreateNewTicket(
 		createTicketReq.FlightID,
 		createTicketReq.PassengerID,
-		"created", // status
+		"updated", // status
 		createTicketReq.SeatNumber,
 		createTicketReq.AdditionalInfo,
 		createTicketReq.DepartureTime,
@@ -375,14 +358,14 @@ func (s *APIServer) handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		createTicketReq.ArrivalTime,
 	)
 
-	utils.InfoLog.Println("Flight: ", newTicket, " updated")
+	utils.InfoLog.Println("New ticket: ", newTicket, " created")
 
 	if err := s.tickets.CreateTicket(newTicket); err != nil {
 		utils.ErrorLog.Printf("Error in CreateTicket: %v", err)
 		return
 	}
 
-	WriteJSON(w, http.StatusOK, "Ticket updated")
+	WriteJSON(w, http.StatusOK, "Ticket created")
 }
 
 // handleUpdateTicket handles requests for deleting ticket info
@@ -537,11 +520,10 @@ func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request
 	WriteJSON(w, http.StatusOK, "Passenger deleted")
 }
 
-// generateID generates unique ID.
-func generateID() string {
-	id := uuid.New()
-	return id.String()
-}
+// // generateID generates unique ID.
+// func generateID() string {
+// 	return uuid.New().String()
+// }
 
 // WriteJSON writes response to JSON
 func WriteJSON(w http.ResponseWriter, status int, v any) {

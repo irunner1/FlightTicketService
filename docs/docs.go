@@ -219,32 +219,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "User name",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User surname",
-                        "name": "surname",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User email",
-                        "name": "email",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User password",
-                        "name": "password",
-                        "in": "query",
-                        "required": true
+                        "description": "Flight data",
+                        "name": "flight",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/flights.Flight"
+                        }
                     }
                 ],
                 "responses": {
@@ -485,13 +466,31 @@ const docTemplate = `{
                 "summary": "Book a new ticket",
                 "parameters": [
                     {
-                        "description": "Ticket data",
-                        "name": "ticket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/booking.CreateTicketReq"
-                        }
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "ticketID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Flight ID",
+                        "name": "flightID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Passenger ID",
+                        "name": "passengerID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Additional Information",
+                        "name": "additionalInfo",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -862,6 +861,9 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
+                },
+                "number": {
+                    "type": "integer"
                 }
             }
         }

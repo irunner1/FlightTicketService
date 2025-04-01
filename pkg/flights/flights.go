@@ -86,10 +86,7 @@ func (fs *FlightsStore) CreateFlight(fl *Flight) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Unique identifier of the flight"
-// @Param name query string true "User name"
-// @Param surname query string true "User surname"
-// @Param email query string true "User email"
-// @Param password query string true "User password"
+// @Param flight body Flight true "Flight data"
 // @Success 200 "Flight updated"
 // @Failure 404 "Flight not found"
 // @Router /api/v1/flights/{id}/update [post]

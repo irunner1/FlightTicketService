@@ -10,7 +10,7 @@ import (
 type BookingService interface {
 	GetTickets() ([]*Ticket, error)
 	GetTicketByID(ticketID string) (*Ticket, error)
-	BookTicket(ticket *Ticket) error
+	BookTicket(ticketID, flightID, passengerID, additionalInfo string) error
 	CancelTicket(ticketID string) error
 	ChangeFlight(ticketID string, newFlightID string) error
 	CreateTicket(newTicket *Ticket) error
@@ -63,14 +63,14 @@ func (bs *BookingStore) CreateFlightsTable() error {
 // @Router /api/v1/tickets/create [post]
 func (bs *BookingStore) CreateTicket(ticket *Ticket) error {
 	query := `insert into booking_flights (
-	flight_id,
-	passenger_id,
-	booking_time,
-	departure_time,
-	arrival_time,
-	status,
-	seat_number,
-	additional_info
+		flight_id,
+		passenger_id,
+		booking_time,
+		departure_time,
+		arrival_time,
+		status,
+		seat_number,
+		additional_info
 	)
 	values ($1, $2, $3, $4, $5, $6, $7, $8)`
 
@@ -99,29 +99,28 @@ func (bs *BookingStore) CreateTicket(ticket *Ticket) error {
 // @Tags booking
 // @Accept json
 // @Produce json
-// @Param ticket body CreateTicketReq true "Ticket data"
+// @Param ticketID query string true "Ticket ID"
+// @Param flightID query string true "Flight ID"
+// @Param passengerID query string true "Passenger ID"
+// @Param additionalInfo query string false "Additional Information"
 // @Success 200 "Ticket successfully booked"
 // @Failure 400 "Invalid ticket data"
 // @Router /api/v1/tickets/book [post]
-func (bs *BookingStore) BookTicket(ticket *Ticket) error {
-	if ticket == nil {
-		return errors.New("ticket cannot be nil")
-	}
-
-	if ticket.ID == "" {
+func (bs *BookingStore) BookTicket(id, flightID, passengerID, additionalInfo string) error {
+	if id == "" {
 		return errors.New("ticket ID cannot be empty")
 	}
 
 	query := `UPDATE booking_flights
 	SET status = $3, passenger_id = $2, additional_info = $4
-	WHERE flight_id = $1;`
+	WHERE ID = $1;`
 
 	resp, err := bs.db.Query(
 		query,
-		ticket.FlightID,
-		ticket.PassengerID,
-		ticket.Status,
-		ticket.AdditionalInfo,
+		id,
+		passengerID,
+		"booked",
+		additionalInfo,
 	)
 
 	if err != nil {
@@ -311,7 +310,7 @@ func (bs *BookingStore) UpdateTicket(id string, newTicket *Ticket) error {
 		newTicket.Status,
 		newTicket.SeatNumber,
 		newTicket.AdditionalInfo,
-		id,
+		newTicket.ID,
 	)
 
 	if err != nil {
