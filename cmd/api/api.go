@@ -56,15 +56,17 @@ func (s *APIServer) Run() {
 	r.HandleFunc("/api/v1/flights/create", s.handleCreateFlight).Methods("POST")
 	r.HandleFunc("/api/v1/flights/{id}/update", s.handleUpdateFlight).Methods("POST")
 	r.HandleFunc("/api/v1/flights/{id}/delete", s.handleDeleteFlight).Methods("DELETE")
-
+	
 	r.HandleFunc("/api/v1/passengers", s.handleGetPassengers).Methods("GET")
 	r.HandleFunc("/api/v1/passengers/{id}", withJWTAuth(s.handleGetPassengerByID, s.store)).Methods("GET")
 	r.HandleFunc("/api/v1/passengers/create", s.handleCreatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/update", s.handleUpdatePassenger).Methods("POST")
 	r.HandleFunc("/api/v1/passengers/{id}/delete ", s.handleDeletePassenger).Methods("DELETE")
-
+	
 	r.HandleFunc("/api/v1/tickets", s.handleGetTickets).Methods("GET")
 	r.HandleFunc("/api/v1/tickets/{id}", s.handleGetTicketByID).Methods("GET")
+	r.HandleFunc("/api/v1/tickets/passenger/{id}", s.handleGetPassengerTickets).Methods("GET")
+
 	r.HandleFunc("/api/v1/tickets/book", s.handleBookTicket).Methods("POST")
 	r.HandleFunc("/api/v1/checkin", s.handleCheckInOnline).Methods("POST")
 	r.HandleFunc("/api/v1/tickets/{id}/change", s.handleChangeTicket).Methods("POST")

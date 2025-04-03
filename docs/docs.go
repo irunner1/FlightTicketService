@@ -474,13 +474,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Flight ID",
-                        "name": "flightID",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "Passenger ID",
                         "name": "passengerID",
                         "in": "query",
@@ -533,6 +526,44 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid ticket data"
+                    }
+                }
+            }
+        },
+        "/api/v1/tickets/passenger/{id}": {
+            "get": {
+                "description": "Returns ticket details for a specific passenger ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tickets"
+                ],
+                "summary": "Get tickets for passenger by passenger_id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Unique identifier of the passenger",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/booking.Ticket"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "tickets not found"
                     }
                 }
             }

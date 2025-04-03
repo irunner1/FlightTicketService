@@ -522,11 +522,6 @@ paths:
         name: ticketID
         required: true
         type: string
-      - description: Flight ID
-        in: query
-        name: flightID
-        required: true
-        type: string
       - description: Passenger ID
         in: query
         name: passengerID
@@ -566,6 +561,31 @@ paths:
         "400":
           description: Invalid ticket data
       summary: Creates ticket
+      tags:
+      - tickets
+  /api/v1/tickets/passenger/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns ticket details for a specific passenger ID.
+      parameters:
+      - description: Unique identifier of the passenger
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/booking.Ticket'
+            type: array
+        "404":
+          description: tickets not found
+      summary: Get tickets for passenger by passenger_id
       tags:
       - tickets
 swagger: "2.0"

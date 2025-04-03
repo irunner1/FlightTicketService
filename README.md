@@ -43,13 +43,19 @@ passengers - table of passengers, users of ticket service
 
 ## Service startup
 
+You need to prepare .env file. Example showed in `.env.showcase`
+
 ```cmd
-    make run
+make run
+```
+
+## Lint
+
+```cmd
+make lint
 ```
 
 ## Example api`s
-
-You need to prepare .env file. Example showed in `.env.showcase`
 
 ## Docker
 
