@@ -187,17 +187,16 @@ func (s *APIServer) handleBookTicket(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	utils.InfoLog.Println(queryParams)
 	ticketID := queryParams.Get("ticketID")
-	flightID := queryParams.Get("flightID")
 	passengerID := queryParams.Get("passengerID")
 	additionalInfo := queryParams.Get("additionalInfo")
 
-	if passengerID == "" || ticketID == "" || flightID == "" {
+	if passengerID == "" || ticketID == "" {
 		utils.ErrorLog.Printf("Missing required parameters in BookTicket query")
 		http.Error(w, "Missing required parameters", http.StatusBadRequest)
 		return
 	}
 
-	err := s.tickets.BookTicket(ticketID, flightID, passengerID, additionalInfo)
+	err := s.tickets.BookTicket(ticketID, passengerID, additionalInfo)
 
 	if err != nil {
 		utils.ErrorLog.Printf("Error in BookTicket: %v", err)
@@ -520,6 +519,24 @@ func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request
 	WriteJSON(w, http.StatusOK, "Passenger deleted")
 }
 
+// handleGetPassengerTickets handles requests for getting list of tickets for passenger id.
+func (s *APIServer) handleGetPassengerTickets(w http.ResponseWriter, r *http.Request) {
+	utils.InfoLog.Println("GetPassengerTickets called")
+
+	vars := mux.Vars(r)
+	passengerID := vars["id"]
+
+	tickets, err := s.tickets.GetPassengerTickets(passengerID)
+
+	if err != nil {
+		utils.ErrorLog.Printf("Error receiving tickets for passenger: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, tickets)
+}
+
 // // generateID generates unique ID.
 // func generateID() string {
 // 	return uuid.New().String()
@@ -529,7 +546,12 @@ func (s *APIServer) handleDeletePassenger(w http.ResponseWriter, r *http.Request
 func WriteJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	err := json.NewEncoder(w).Encode(v)
+	if err != nil {
+		utils.ErrorLog.Printf("Error in encoding response: %v", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func createJWT(passenger *p.Passenger) (string, error) {

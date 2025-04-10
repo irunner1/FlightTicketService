@@ -10,12 +10,13 @@ import (
 type BookingService interface {
 	GetTickets() ([]*Ticket, error)
 	GetTicketByID(ticketID string) (*Ticket, error)
-	BookTicket(ticketID, flightID, passengerID, additionalInfo string) error
+	BookTicket(ticketID, passengerID, additionalInfo string) error
 	CancelTicket(ticketID string) error
 	ChangeFlight(ticketID string, newFlightID string) error
 	CreateTicket(newTicket *Ticket) error
 	UpdateTicket(id string, newTicket *Ticket) error
 	DeleteTicket(ticketID string) error
+	GetPassengerTickets(passengerID string) ([]*Ticket, error)
 }
 
 // BookingStore structure implements interface FlightService.
@@ -42,7 +43,7 @@ func (bs *BookingStore) CreateFlightsTable() error {
 		booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		departure_time TIMESTAMP NOT NULL,
 		arrival_time TIMESTAMP NOT NULL,
-		status VARCHAR(30) NOT NULL CHECK (status IN ("booked", "cancelled", "confirmed")),
+		status VARCHAR(30) NOT NULL CHECK (status IN ("booked", "cancelled", "created")),
 		seat_number VARCHAR(30),
 		additional_info VARCHAR(100)
 	)`
@@ -100,27 +101,26 @@ func (bs *BookingStore) CreateTicket(ticket *Ticket) error {
 // @Accept json
 // @Produce json
 // @Param ticketID query string true "Ticket ID"
-// @Param flightID query string true "Flight ID"
 // @Param passengerID query string true "Passenger ID"
 // @Param additionalInfo query string false "Additional Information"
 // @Success 200 "Ticket successfully booked"
 // @Failure 400 "Invalid ticket data"
 // @Router /api/v1/tickets/book [post]
-func (bs *BookingStore) BookTicket(id, flightID, passengerID, additionalInfo string) error {
+func (bs *BookingStore) BookTicket(id, passengerID, additionalInfo string) error {
 	if id == "" {
 		return errors.New("ticket ID cannot be empty")
 	}
 
 	query := `UPDATE booking_flights
-	SET status = $3, passenger_id = $2, additional_info = $4
-	WHERE ID = $1;`
+	SET passenger_id = $1, status = $2, additional_info = $3
+	WHERE ID = $4;`
 
 	resp, err := bs.db.Query(
 		query,
-		id,
 		passengerID,
 		"booked",
 		additionalInfo,
+		id,
 	)
 
 	if err != nil {
@@ -357,4 +357,47 @@ func (bs *BookingStore) DeleteTicket(ticketID string) error {
 	}
 
 	return nil
+}
+
+// GetPassengerTickets returns ticket details for a specific passenger ID
+// @Summary Get tickets for passenger by passenger_id
+// @Description Returns ticket details for a specific passenger ID.
+// @Tags tickets
+// @Accept json
+// @Produce json
+// @Param id path string true "Unique identifier of the passenger"
+// @Success 200 {array} Ticket
+// @Failure 404 "tickets not found"
+// @Router /api/v1/tickets/passenger/{id} [get]
+func (bs *BookingStore) GetPassengerTickets(passengerID string) ([]*Ticket, error) {
+	fmt.Println(passengerID)
+	query := `select * from booking_flights where passenger_id = $1`
+	rows, err := bs.db.Query(query, passengerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(rows)
+	tickets := []*Ticket{}
+	for rows.Next() {
+		ticket := &Ticket{}
+		err := rows.Scan(
+			&ticket.ID,
+			&ticket.FlightID,
+			&ticket.PassengerID,
+			&ticket.BookingTime,
+			&ticket.DepartureTime,
+			&ticket.ArrivalTime,
+			&ticket.Status,
+			&ticket.SeatNumber,
+			&ticket.AdditionalInfo,
+		)
+		if err != nil {
+			return nil, err
+		}
+		tickets = append(tickets, ticket)
+	}
+
+	return tickets, nil
 }
